@@ -5,7 +5,7 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 /**
  * Constants unique to the cannon and only needed inside the cannon package.
  */
-public class CannonConstants {
+class CannonConstants {
     /** When activated, motor current is limited to this value. */
     final static double CURRENT_LIMIT_AMPS = 40.0;
     /** Current threshold to activate current limit. */

@@ -3,27 +3,25 @@ package frc.robot.game;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
- * Defines the scoring levels of the reef.
+ * Defines the interesting levels for algae.
  */
-public enum ReefLevel implements ElevatedLevel {
-    /** Reef level 1, aka the trough. */
-    L1,
-    /** Reef level 2. */
-    L2,
-    /** Reef level 3. */
-    L3,
-    /** Reef level 4. */
-    L4;
+public enum AlgaeLevel implements ElevatedLevel {
+    /** Algae removal low. */
+    DEALGAE_LOW,
+    /** Algae removal high. */
+    DEALGAE_HIGH,
+    /** Score algae into barge. */
+    SCORE_BARGE;
 
-    /** The current target reef level. */
-    private static ReefLevel currentLevel = L1;
+    /** The current target algae level. */
+    private static AlgaeLevel currentLevel = DEALGAE_HIGH;
     /** A trigger for each enumeration value. */
     private final Trigger trigger;
 
     /**
      * Called to create each enumeration value. A trigger for each value.
      */
-    private ReefLevel() {
+    private AlgaeLevel() {
         this.trigger = new Trigger(() -> getCurrentLevel() == this);
     }
 
@@ -35,19 +33,19 @@ public enum ReefLevel implements ElevatedLevel {
     }
 
     /**
-     * @return the current target reef level (never null).
+     * @return the current target algae level (never null).
      */
-    public static ReefLevel getCurrentLevel() {
+    public static AlgaeLevel getCurrentLevel() {
         return currentLevel;
     }
 
     /**
-     * Sets the next target reef level.
+     * Sets the next target algae level.
      * 
      * @param nextLevel
-     *            the reef level to set. If null, the level does not change.
+     *            the algae level to set. If null, the level does not change.
      */
-    public static void setCurrentLevel(final ReefLevel nextLevel) {
+    public static void setCurrentLevel(final AlgaeLevel nextLevel) {
         if (nextLevel != null) {
             currentLevel = nextLevel;
         }

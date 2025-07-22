@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -16,10 +17,9 @@ import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.hopper.Hopper;
 
 /**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and trigger mappings) should be declared here.
+ * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
+ * little robot logic should actually be handled in the {@link Robot} periodic methods (other than the scheduler calls).
+ * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
   /** The hopper used to funnel coral to the coral cannon. */
@@ -44,12 +44,10 @@ public class RobotContainer {
 
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-   * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-   * joysticks}.
+   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
+   * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
+   * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
+   * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
   private void configureBindings() {
     // Driver intake control bindings.
@@ -59,6 +57,11 @@ public class RobotContainer {
     // If we successfully completed intake or got jammed, this compound trigger will not fire.
     this.driverController.leftTrigger().negate().and(CoralState.INTAKE.getTrigger())
         .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.EMPTY)));
+    // Driver feedback on successful intake.
+    CoralState.INTAKE.getTrigger().onTrue(
+        Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
+            .andThen(Commands.waitSeconds(0.5))
+            .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
 
     // Driver coral jammed in hopper agitation bindings.
     // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake again.

@@ -18,7 +18,7 @@ import frc.robot.game.CoralState;
  */
 public class Hopper extends SubsystemBase {
   /** Motor used for intake and agitation. */
-  private TalonSRX feedWheels = new TalonSRX(RioBusCANIds.HOPPER_MOTOR_CANID);
+  private final TalonSRX feedWheels = new TalonSRX(RioBusCANIds.HOPPER_MOTOR_CANID);
 
   /**
    * Creates the hopper subsystem, configures the motor, and creates game piece state bindings.

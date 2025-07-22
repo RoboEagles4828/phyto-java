@@ -32,36 +32,36 @@ public class Elevator extends SubsystemBase {
     private int currentTargetPositionPIDSlot = 0;
 
     /** Right side elevator motor is the leader. */
-    private TalonFX rightMotorLeader = new TalonFX(RioBusCANIds.ELEVATOR_RIGHT_MOTOR_CANID);
+    private final TalonFX rightMotorLeader = new TalonFX(RioBusCANIds.ELEVATOR_RIGHT_MOTOR_CANID);
     /** Left side elevator motor follows the right side. */
-    private TalonFX leftMotorFollower = new TalonFX(RioBusCANIds.ELEVATOR_LEFT_MOTOR_CANID);
+    private final TalonFX leftMotorFollower = new TalonFX(RioBusCANIds.ELEVATOR_LEFT_MOTOR_CANID);
 
     /** Encoder tracking elevator position. Counts on rise and fall of each channel (4x). */
-    private Encoder elevatorPositionEncoder = new Encoder(
+    private final Encoder elevatorPositionEncoder = new Encoder(
             DIOIds.ELEVATOR_QUAD_ENCODER_A_CHANNEL,
             DIOIds.ELEVATOR_QUAD_ENCODER_B_CHANNEL,
             false,
             EncodingType.k4X);
     /** Detect elevator at bottom to stop and zero the {@link Elevator#elevatorPositionEncoder}. */
-    private DigitalInput bottomLimitSwitch = new DigitalInput(DIOIds.ELEVATOR_BOTTOM_LIMIT_DIO);
+    private final DigitalInput bottomLimitSwitch = new DigitalInput(DIOIds.ELEVATOR_BOTTOM_LIMIT_DIO);
     /** Debounce bottom detection to avoid false positives from vibration. */
-    private Debouncer zeroingDebounce = new Debouncer(ElevatorConstants.BOTTOM_DETECTION_DEBOUNCE_SEC);
+    private final Debouncer zeroingDebounce = new Debouncer(ElevatorConstants.BOTTOM_DETECTION_DEBOUNCE_SEC);
     /** Detect elevator at top to stop. */
-    private DigitalInput topLimitSwitch = new DigitalInput(DIOIds.ELEVATOR_TOP_LIMIT_DIO);
+    private final DigitalInput topLimitSwitch = new DigitalInput(DIOIds.ELEVATOR_TOP_LIMIT_DIO);
 
     /** PID control to any scoring level. Initialize to 0.0 for match start at bottom. */
-    private PositionVoltage toAnyLevel = new PositionVoltage(0.0).withEnableFOC(true);
+    private final PositionVoltage toAnyLevel = new PositionVoltage(0.0).withEnableFOC(true);
     /** Duty cycle control for return to 0.0 and nudges. */
-    private DutyCycleOut toZeroOrNudge = new DutyCycleOut(0.0);
+    private final DutyCycleOut toZeroOrNudge = new DutyCycleOut(0.0);
 
-    private Command gotoAndHoldCurrentTargetPositionCommand = gotoAndHoldCurrentTargetPosition();
+    private final Command gotoAndHoldCurrentTargetPositionCommand = gotoAndHoldCurrentTargetPosition();
 
     public Elevator() {
         /** Configure left to follow right, but in opposite direction. */
         this.leftMotorFollower.setControl(new Follower(RioBusCANIds.ELEVATOR_RIGHT_MOTOR_CANID, true));
 
         /** Used to configure motors and PID slots. */
-        TalonFXConfiguration motorCfg = new TalonFXConfiguration();
+        final TalonFXConfiguration motorCfg = new TalonFXConfiguration();
         motorCfg.Feedback.SensorToMechanismRatio = ElevatorConstants.GEAR_RATIO;
         motorCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         motorCfg.Slot0.GravityType = motorCfg.Slot1.GravityType = GravityTypeValue.Elevator_Static;
@@ -133,7 +133,7 @@ public class Elevator extends SubsystemBase {
     }
 
     private boolean isAtBottom() {
-        boolean atBottom = this.zeroingDebounce.calculate(this.bottomLimitSwitch.get());
+        final boolean atBottom = this.zeroingDebounce.calculate(this.bottomLimitSwitch.get());
         if (atBottom) {
             this.rightMotorLeader.setPosition(0.0);
             this.elevatorPositionEncoder.reset();

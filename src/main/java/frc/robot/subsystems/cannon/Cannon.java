@@ -19,11 +19,11 @@ import frc.robot.game.ReefLevel;
  */
 public class Cannon extends SubsystemBase {
     /** Motor to drive wheels on the left side of the cannon. */
-    private TalonSRX leftsideWheels = new TalonSRX(RioBusCANIds.CANNON_LEFT_MOTOR_CANID);
+    private final TalonSRX leftsideWheels = new TalonSRX(RioBusCANIds.CANNON_LEFT_MOTOR_CANID);
     /** Motor to drive wheels on the right side of the cannon. */
-    private TalonSRX rightsideWheels = new TalonSRX(RioBusCANIds.CANNON_RIGHT_MOTOR_CANID);
+    private final TalonSRX rightsideWheels = new TalonSRX(RioBusCANIds.CANNON_RIGHT_MOTOR_CANID);
     /** Stall during intake debounce for coral loaded detection. */
-    private Debouncer intakeStallDetection = new Debouncer(
+    private final Debouncer intakeStallDetection = new Debouncer(
             CannonConstants.INTAKE_STALL_DEBOUNCE_SEC,
             DebounceType.kBoth);
 

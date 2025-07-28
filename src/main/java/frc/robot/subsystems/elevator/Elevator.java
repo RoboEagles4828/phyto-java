@@ -24,7 +24,10 @@ import frc.robot.game.ReefLevel;
  * The elevator subsystem controls the movement of the elevator to scoring levels and its return to zero.
  */
 public class Elevator extends SubsystemBase {
-    /** The next {@link ElevatedLevel} to move the elevator when moving to and holding a scoring level. */
+    /**
+     * The next {@link ElevatedLevel} to move the elevator when moving to and holding a scoring level. Note that this
+     * must never be null since {@link ElevatorConstants#LEVEL_TO_POSITION} does not support null keys.
+     */
     private ElevatedLevel nextMovingToPostionElevatedLevel = ReefLevel.L1;
     /** The current elevator target position in mechanism rotations. */
     private double currentTargetPosition = 0.0;
@@ -93,7 +96,7 @@ public class Elevator extends SubsystemBase {
      * See the notes on {@link #setNextMovingToPostionElevatedLevel(ElevatedLevel)}. Also note that this is the current
      * target if we are now moving and holding.
      * 
-     * @return the level to be targeted the next time we move to a scoring position.
+     * @return the level to be targeted the next time we move to a scoring position. Never null.
      */
     public ElevatedLevel getNextMovingToPostionElevatedLevel() {
         return this.nextMovingToPostionElevatedLevel;
@@ -105,12 +108,15 @@ public class Elevator extends SubsystemBase {
      * elevator will move to it. Otherwise, it is simply stored for the next movement.
      * 
      * @param nextMovingToPostionElevatedLevel
-     *            the level to be targeted the next time we move to a scoring position.
+     *            the level to be targeted the next time we move to a scoring position. Note that this level does not
+     *            change if this is null.
      */
     public void setNextMovingToPostionElevatedLevel(final ElevatedLevel nextMovingToPostionElevatedLevel) {
-        this.nextMovingToPostionElevatedLevel = nextMovingToPostionElevatedLevel;
-        if (this.getCurrentCommand().getName().startsWith(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME)) {
-            this.setCurrentTargetPosition();
+        if (nextMovingToPostionElevatedLevel != null) {
+            this.nextMovingToPostionElevatedLevel = nextMovingToPostionElevatedLevel;
+            if (this.getCurrentCommand().getName().startsWith(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME)) {
+                this.setCurrentTargetPosition();
+            }
         }
     }
 

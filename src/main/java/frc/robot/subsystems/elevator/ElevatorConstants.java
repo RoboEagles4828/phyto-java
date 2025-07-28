@@ -19,7 +19,10 @@ import frc.robot.game.ReefLevel;
  * but they were never applied to the motor configuration, so they are not present here.
  */
 class ElevatorConstants {
-    /** Immutable map of {@link ElevatedLevel} to elevator positions in mechanism rotations from 0. */
+    /**
+     * Immutable map of {@link ElevatedLevel} to elevator positions in mechanism rotations from 0. Note that this map
+     * does not support null keys nor values.
+     */
     static final Map<ElevatedLevel, Double> LEVEL_TO_POSITION = Map.of(
             ReefLevel.L1, 1.105,
             ReefLevel.L2, 1.9,

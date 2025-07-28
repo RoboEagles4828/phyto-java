@@ -54,8 +54,9 @@ public class Elevator extends SubsystemBase {
     /** Duty cycle control for return to 0.0 and nudges. */
     private final DutyCycleOut toZeroOrNudge = new DutyCycleOut(0.0);
 
-    private final Command gotoAndHoldCurrentTargetPositionCommand = gotoAndHoldCurrentTargetPosition();
-
+    /**
+     * Creates the elevator subsystem, configures the motors, and creates game piece state bindings.
+     */
     public Elevator() {
         /** Configure left to follow right, but in opposite direction. */
         this.leftMotorFollower.setControl(new Follower(RioBusCANIds.ELEVATOR_RIGHT_MOTOR_CANID, true));
@@ -85,20 +86,38 @@ public class Elevator extends SubsystemBase {
         CoralState.PREPARE_TO_SCORE.getTrigger()
                 .or(CoralState.SCORE.getTrigger())
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
-                .whileTrue(this.gotoAndHoldCurrentTargetPositionCommand);
+                .whileTrue(this.gotoAndHoldCurrentTargetPosition());
     }
 
+    /**
+     * See the notes on {@link #setNextMovingToPostionElevatedLevel(ElevatedLevel)}. Also note that this is the current
+     * target if we are now moving and holding.
+     * 
+     * @return the level to be targeted the next time we move to a scoring position.
+     */
     public ElevatedLevel getNextMovingToPostionElevatedLevel() {
         return this.nextMovingToPostionElevatedLevel;
     }
 
+    /**
+     * If we are currently moving to or holding a level (See
+     * {@link ElevatorConstants#MOVING_TO_AND_HOLDING_COMMAND_NAME}), this new next level is immediately applied and the
+     * elevator will move to it. Otherwise, it is simply stored for the next movement.
+     * 
+     * @param nextMovingToPostionElevatedLevel
+     *            the level to be targeted the next time we move to a scoring position.
+     */
     public void setNextMovingToPostionElevatedLevel(final ElevatedLevel nextMovingToPostionElevatedLevel) {
         this.nextMovingToPostionElevatedLevel = nextMovingToPostionElevatedLevel;
-        if (this.gotoAndHoldCurrentTargetPositionCommand.isScheduled()) {
+        if (this.getCurrentCommand().getName().startsWith(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME)) {
             this.setCurrentTargetPosition();
         }
     }
 
+    /**
+     * This sets the target position to move or hold to in mechanism target rotations from 0. The proper PID slot for
+     * the movement is also selected.
+     */
     private void setCurrentTargetPosition() {
         this.currentTargetPosition = ElevatorConstants.LEVEL_TO_POSITION
                 .get(this.getNextMovingToPostionElevatedLevel());
@@ -108,12 +127,15 @@ public class Elevator extends SubsystemBase {
         }
     }
 
+    /** The command to move and hold the elevator at a predetermined scoring level. */
     private Command gotoAndHoldCurrentTargetPosition() {
         return this.startRun(
                 this::setCurrentTargetPosition,
-                this::gotoAndHoldCurrentTargetPositionRun);
+                this::gotoAndHoldCurrentTargetPositionRun)
+                .withName(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME);
     }
 
+    /** For method reference lambda expressions in commands that move and hold position. */
     private void gotoAndHoldCurrentTargetPositionRun() {
         this.rightMotorLeader.setControl(
                 this.toAnyLevel.withPosition(this.currentTargetPosition)
@@ -122,6 +144,9 @@ public class Elevator extends SubsystemBase {
                         .withLimitReverseMotion(this.bottomLimitSwitch.get()));
     }
 
+    /**
+     * @return the command to goto and stop at zero. This is the default command.
+     */
     private Command gotoAndStopAtZero() {
         return this.run(
                 () -> this.rightMotorLeader.setControl(
@@ -132,6 +157,9 @@ public class Elevator extends SubsystemBase {
                         this.toZeroOrNudge.withOutput(ElevatorConstants.AT_ZERO_DUTY_CYCLE))));
     }
 
+    /**
+     * @return true if the debounced bottom has been detected, or false otherwise.
+     */
     private boolean isAtBottom() {
         final boolean atBottom = this.zeroingDebounce.calculate(this.bottomLimitSwitch.get());
         if (atBottom) {

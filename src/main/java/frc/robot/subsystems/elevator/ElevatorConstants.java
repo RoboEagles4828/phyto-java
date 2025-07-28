@@ -19,7 +19,7 @@ import frc.robot.game.ReefLevel;
  * but they were never applied to the motor configuration, so they are not present here.
  */
 class ElevatorConstants {
-    /** Immutable map of {@link ElevatedLevel} to elevator positions. */
+    /** Immutable map of {@link ElevatedLevel} to elevator positions in mechanism rotations from 0. */
     static final Map<ElevatedLevel, Double> LEVEL_TO_POSITION = Map.of(
             ReefLevel.L1, 1.105,
             ReefLevel.L2, 1.9,
@@ -71,6 +71,12 @@ class ElevatorConstants {
      * mechanism rotations.
      */
     static final double ON_TARGET_TOLERANCE_MECH_ROTATIONS = 0.07;
+
+    /**
+     * Used to name any command instance that is used to move to and hold a scoring position. It is used to test for
+     * move to and hold being the currently commanded.
+     */
+    static final String MOVING_TO_AND_HOLDING_COMMAND_NAME = "Move to and hold position";
 
     /** Duty cycle for holding at zero (TODO consider small negative value). */
     static final double AT_ZERO_DUTY_CYCLE = 0.0;

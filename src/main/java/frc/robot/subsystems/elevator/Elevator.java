@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DIOIds;
@@ -95,12 +94,6 @@ public class Elevator extends SubsystemBase {
                 .or(CoralState.SCORE.getTrigger())
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
                 .whileTrue(this.gotoAndHoldCurrentTargetPosition());
-        /* If preparing to score and on target, we are now ready to score. */
-        CoralState.PREPARE_TO_SCORE.getTrigger().and(onTargetTrigger)
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
-        /* If ready to score and no longer on target, we are back to preparing to score. */
-        CoralState.READY_TO_SCORE.getTrigger().and(onTargetTrigger.negate())
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
     }
 
     /**
@@ -129,6 +122,16 @@ public class Elevator extends SubsystemBase {
                 this.setCurrentTargetPosition();
             }
         }
+    }
+
+    /**
+     * This trigger can be combined with similar triggers from other subsystems to decide when to transition from
+     * {@link CoralState#PREPARE_TO_SCORE} to {@link CoralState#READY_TO_SCORE} and vice versa.
+     * 
+     * @return a trigger that is true when the elevator is holding the proper scoring level, or false otherwise.
+     */
+    public Trigger getReadyToScoreTrigger() {
+        return this.onTargetTrigger;
     }
 
     /**

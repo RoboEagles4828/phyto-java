@@ -30,7 +30,6 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final Cannon coralCannon = new Cannon();
   /** The elevator is used to move game piece manipulators between levels. */
-  @SuppressWarnings("unused")
   private final Elevator elevator = new Elevator();
 
   /** Controller used primarily for driving the robot around the field. */
@@ -76,9 +75,13 @@ public class RobotContainer {
     // Driver prepare to score binding.
     this.driverController.rightTrigger()
         .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
-    // TODO when have drive train and auto align, consider how to manage transition from
-    // PREPARE_TO_SCORE to READY_TO_SCORE. Need input from both drive train and elevator.
-    // Right now, it is just in elevator.
+    // TODO when have drive train, combine the elevator trigger below with a drive train trigger.
+    /* If preparing to score and subsystems are ready, we are now ready to score. */
+    CoralState.PREPARE_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger())
+        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
+    /* If ready to score and a subsystem is no longer ready, we are back to preparing to score. */
+    CoralState.READY_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger().negate())
+        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
 
     // Driver score coral bindings.
     // On press, change to score coral state. It will change to empty on its own.

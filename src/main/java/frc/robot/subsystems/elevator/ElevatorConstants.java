@@ -71,9 +71,11 @@ class ElevatorConstants {
     static final double GEAR_RATIO = 18.0;
     /**
      * On target tolerance for PID controled movement. Due to the {@link #GEAR_RATIO} usage, this is specified in
-     * mechanism rotations.
+     * mechanism rotations. This was 0.07 on the old code, which is about 1.17 inches either way (a bit much). Combine
+     * that with how it altered the target on hold and we can see the source of some inaccuracies. This value is tighter
+     * and we do not modify the target anymore to hold.
      */
-    static final double ON_TARGET_TOLERANCE_MECH_ROTATIONS = 0.07;
+    static final double ON_TARGET_TOLERANCE_MECH_ROTATIONS = 0.03; // About 0.5 inches either way.
 
     /**
      * Used to name any command instance that is used to move to and hold a scoring position. It is used to test for

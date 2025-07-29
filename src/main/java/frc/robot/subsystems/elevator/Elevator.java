@@ -13,7 +13,9 @@ import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DIOIds;
 import frc.robot.Constants.RioBusCANIds;
 import frc.robot.game.CoralState;
@@ -33,6 +35,8 @@ public class Elevator extends SubsystemBase {
     private double currentTargetPosition = 0.0;
     /** Usually slot 0, but use slot 1 for highest targets. */
     private int currentTargetPositionPIDSlot = 0;
+    /** A {@link Trigger} that is true when {@link #onTarget()} returns true. */
+    private Trigger onTargetTrigger = new Trigger(this::onTarget);
 
     /** Right side elevator motor is the leader. */
     private final TalonFX rightMotorLeader = new TalonFX(RioBusCANIds.ELEVATOR_RIGHT_MOTOR_CANID);
@@ -83,15 +87,20 @@ public class Elevator extends SubsystemBase {
         this.rightMotorLeader.getConfigurator().apply(motorCfg);
         this.leftMotorFollower.getConfigurator().apply(motorCfg); // TODO is this needed? Doubt it.
 
-        /** We start at zero, and zeroing is common to coral and algae, make it the default. */
+        /* We start at zero, and zeroing is common to coral and algae, make it the default. */
         this.setDefaultCommand(gotoAndStopAtZero());
-        /** Move to and hold a scoring (or jam) position when appropriate. */
+        /* Move to and hold a scoring (or jam) position when appropriate. */
         CoralState.PREPARE_TO_SCORE.getTrigger()
                 .or(CoralState.READY_TO_SCORE.getTrigger())
                 .or(CoralState.SCORE.getTrigger())
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
                 .whileTrue(this.gotoAndHoldCurrentTargetPosition());
-        // TODO create trigger and binding for transition from prepare to score to ready to score.
+        /* If preparing to score and on target, we are now ready to score. */
+        CoralState.PREPARE_TO_SCORE.getTrigger().and(onTargetTrigger)
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
+        /* If ready to score and no longer on target, we are back to preparing to score. */
+        CoralState.READY_TO_SCORE.getTrigger().and(onTargetTrigger.negate())
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
     }
 
     /**
@@ -175,5 +184,21 @@ public class Elevator extends SubsystemBase {
             this.elevatorPositionEncoder.reset();
         }
         return atBottom;
+    }
+
+    /**
+     * @return true if position is within {@link ElevatorConstants#ON_TARGET_TOLERANCE_MECH_ROTATIONS} of target, or
+     *         false otherwise. TODO should this be debounced?
+     */
+    private boolean onTarget() {
+        return Math.abs(
+                this.currentTargetPosition - this.getPosition()) < ElevatorConstants.ON_TARGET_TOLERANCE_MECH_ROTATIONS;
+    }
+
+    /**
+     * @return the current elevator position in mechanism rotations.
+     */
+    private double getPosition() {
+        return this.rightMotorLeader.getPosition().getValueAsDouble();
     }
 }

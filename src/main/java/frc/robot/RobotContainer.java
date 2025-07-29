@@ -14,6 +14,7 @@ import frc.robot.commands.SimpleAutos;
 import frc.robot.game.CoralState;
 import frc.robot.game.ReefLevel;
 import frc.robot.subsystems.cannon.Cannon;
+import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
 
 /**
@@ -28,6 +29,9 @@ public class RobotContainer {
   /** The coral cannon used for intake and scoring. */
   @SuppressWarnings("unused")
   private final Cannon coralCannon = new Cannon();
+  /** The elevator is used to move game piece manipulators between levels. */
+  @SuppressWarnings("unused")
+  private final Elevator elevator = new Elevator();
 
   /** Controller used primarily for driving the robot around the field. */
   private final CommandXboxController driverController = new CommandXboxController(
@@ -53,12 +57,11 @@ public class RobotContainer {
     // Driver intake control bindings.
     // Change to the coral intake state on press.
     this.driverController.leftTrigger().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.INTAKE)));
-    // On release of same trigger and still in coral intake state, return to empty.
-    // If we successfully completed intake or got jammed, this compound trigger will not fire.
+    // If still intaking on release, we did not get a coral, so go to empty.
     this.driverController.leftTrigger().negate().and(CoralState.INTAKE.getTrigger())
         .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.EMPTY)));
-    // Driver feedback on successful intake.
-    CoralState.INTAKE.getTrigger().onTrue(
+    // Driver feedback on successful intake (transition from INTAKE to CARRY).
+    CoralState.INTAKE.getTrigger().negate().and(CoralState.CARRY.getTrigger()).onTrue(
         Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
             .andThen(Commands.waitSeconds(0.5))
             .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
@@ -66,18 +69,38 @@ public class RobotContainer {
     // Driver coral jammed in hopper agitation bindings.
     // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake again.
     this.driverController.rightBumper()
-        .onTrue(Commands.startEnd(() -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
+        .onTrue(Commands.startEnd(
+            () -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
             () -> CoralState.setCurrentState(CoralState.EMPTY)));
+
+    // Driver prepare to score binding.
+    this.driverController.rightTrigger()
+        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+    // TODO when have drive train and auto align, consider how to manage transition from
+    // PREPARE_TO_SCORE to READY_TO_SCORE. Need input from both drive train and elevator.
+    // Right now, it is just in elevator.
 
     // Driver score coral bindings.
     // On press, change to score coral state. It will change to empty on its own.
     this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
+
+    // Both driver and operator binding for return to carry and elevator to zero.
+    this.driverController.povDown().or(this.operatorController.povDown())
+        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
     // Operator target reef level selection bindings.
     this.operatorController.a().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L1)));
     this.operatorController.x().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L2)));
     this.operatorController.b().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L3)));
     this.operatorController.y().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L4)));
+
+    // TODO operator bindings for elevator nudges.
+    // self._operator_joystick.rightTrigger().whileTrue(
+    // self.elevator.move_up_gradually()
+    // )
+    // self._operator_joystick.leftTrigger().whileTrue(
+    // self.elevator.move_down_gradually()
+    // )
   }
 
   /**

@@ -59,7 +59,21 @@ public class Cannon extends SubsystemBase {
     private Command intake() {
         return this.run(() -> setCannonSpeeds(CannonConstants.INTAKE_DUTY_CYCLE))
                 .withDeadline(this.stopIntaking())
-                .andThen(this.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
+                .finallyDo(this::postIntakeState);
+    }
+
+    /**
+     * Used by the intake command to set the next coral state depending on success or interruption.
+     * 
+     * @param interrupted
+     *            true if the intake command was interrupted, or false if it finished with a good load.
+     */
+    private void postIntakeState(final boolean interrupted) {
+        if (interrupted) {
+            CoralState.setCurrentState(CoralState.EMPTY);
+        } else {
+            CoralState.setCurrentState(CoralState.CARRY);
+        }
     }
 
     /**

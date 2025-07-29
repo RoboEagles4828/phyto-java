@@ -87,9 +87,11 @@ public class Elevator extends SubsystemBase {
         this.setDefaultCommand(gotoAndStopAtZero());
         /** Move to and hold a scoring (or jam) position when appropriate. */
         CoralState.PREPARE_TO_SCORE.getTrigger()
+                .or(CoralState.READY_TO_SCORE.getTrigger())
                 .or(CoralState.SCORE.getTrigger())
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
                 .whileTrue(this.gotoAndHoldCurrentTargetPosition());
+        // TODO create trigger and binding for transition from prepare to score to ready to score.
     }
 
     /**

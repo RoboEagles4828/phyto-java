@@ -60,6 +60,11 @@ public class Elevator extends SubsystemBase {
     /** Duty cycle control for return to 0.0 and nudges. */
     private final DutyCycleOut toZeroOrNudge = new DutyCycleOut(0.0);
 
+    /** Used to avoid creating a new one after every nudge. */
+    private Command holdPositionPostNudge = this.run(
+            this::gotoAndHoldCurrentTargetPositionRun)
+            .withName(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME);
+
     /**
      * Creates the elevator subsystem, configures the motors, and creates game piece state bindings.
      */
@@ -136,18 +141,33 @@ public class Elevator extends SubsystemBase {
 
     /**
      * This sets the target position to move or hold to in mechanism target rotations from 0. The proper PID slot for
-     * the movement is also selected.
+     * the movement is also selected. This position set is derived from the current next elevated level target.
      */
     private void setCurrentTargetPosition() {
-        this.currentTargetPosition = ElevatorConstants.LEVEL_TO_POSITION
-                .get(this.getNextMovingToPostionElevatedLevel());
+        this.setCurrentTargetPosition(ElevatorConstants.LEVEL_TO_POSITION
+                .get(this.getNextMovingToPostionElevatedLevel()));
+    }
+
+    /**
+     * This sets the target position to move or hold to in mechanism target rotations from 0. The proper PID slot for
+     * the movement is also selected.
+     * 
+     * @param targetPosition
+     *            the new current target position.
+     */
+    private void setCurrentTargetPosition(final double targetPosition) {
+        this.currentTargetPosition = targetPosition;
         this.currentTargetPositionPIDSlot = 0;
         if (this.currentTargetPosition > ElevatorConstants.PID_SLOT_POSITION_THRESHOLD) {
             this.currentTargetPositionPIDSlot = 1;
         }
     }
 
-    /** The command to move and hold the elevator at a predetermined scoring level. */
+    /**
+     * Note that this version of the command sets the target based on the next target level.
+     * 
+     * @return the command to move and hold the elevator at a predetermined scoring level.
+     */
     private Command gotoAndHoldCurrentTargetPosition() {
         return this.startRun(
                 this::setCurrentTargetPosition,
@@ -203,5 +223,54 @@ public class Elevator extends SubsystemBase {
      */
     private double getPosition() {
         return this.rightMotorLeader.getPosition().getValueAsDouble();
+    }
+
+    /**
+     * This command moves slowly upward and upon completion it holds at the nudged to position.
+     * 
+     * @return a new nudge up command.
+     */
+    public Command nudgeUpCommand() {
+        return this.runEnd(
+                this::nudgeUpRun,
+                this::nudgeEndResumeHold);
+    }
+
+    /**
+     * The {@link #nudgeUpCommand()} run implementation.
+     */
+    private void nudgeUpRun() {
+        this.rightMotorLeader.setControl(
+                this.toZeroOrNudge.withOutput(ElevatorConstants.NUDGE_UP_DUTY_CYCLE)
+                        .withLimitForwardMotion(!this.topLimitSwitch.get()));
+    }
+
+    /**
+     * This command moves slowly downward and upon completion it holds at the nudged to position.
+     * 
+     * @return a new nudge down command.
+     */
+    public Command nudgeDownCommand() {
+        return this.runEnd(
+                this::nudgeDownRun,
+                this::nudgeEndResumeHold);
+    }
+
+    /**
+     * The {@link #nudgeDownCommand()} run implementation.
+     */
+    private void nudgeDownRun() {
+        this.rightMotorLeader.setControl(
+                this.toZeroOrNudge.withOutput(ElevatorConstants.NUDGE_DOWN_DUTY_CYCLE)
+                        .withLimitForwardMotion(this.bottomLimitSwitch.get()));
+    }
+
+    /**
+     * The end condition for both {@link #nudgeUpCommand()} and {@link #nudgeDownCommand()}. It sets the new nudged to
+     * target and resumes holding at that position.
+     */
+    private void nudgeEndResumeHold() {
+        this.setCurrentTargetPosition(this.rightMotorLeader.getPosition().getValueAsDouble());
+        this.holdPositionPostNudge.schedule(); // TODO check that this works. It use to have issues from end.
     }
 }

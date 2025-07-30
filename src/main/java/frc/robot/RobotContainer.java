@@ -23,95 +23,92 @@ import frc.robot.subsystems.hopper.Hopper;
  * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  /** The hopper used to funnel coral to the coral cannon. */
-  @SuppressWarnings("unused")
-  private final Hopper coralHopper = new Hopper();
-  /** The coral cannon used for intake and scoring. */
-  @SuppressWarnings("unused")
-  private final Cannon coralCannon = new Cannon();
-  /** The elevator is used to move game piece manipulators between levels. */
-  private final Elevator elevator = new Elevator();
+    /** The hopper used to funnel coral to the coral cannon. */
+    @SuppressWarnings("unused")
+    private final Hopper coralHopper = new Hopper();
+    /** The coral cannon used for intake and scoring. */
+    @SuppressWarnings("unused")
+    private final Cannon coralCannon = new Cannon();
+    /** The elevator is used to move game piece manipulators between levels. */
+    private final Elevator elevator = new Elevator();
 
-  /** Controller used primarily for driving the robot around the field. */
-  private final CommandXboxController driverController = new CommandXboxController(
-      OperatorConstants.DRIVER_CONTROLLER_PORT);
-  /** Controller used primarily for operator game piece manipulation. */
-  private final CommandXboxController operatorController = new CommandXboxController(
-      OperatorConstants.OPERATOR_CONTROLLER_PORT);
+    /** Controller used primarily for driving the robot around the field. */
+    private final CommandXboxController driverController = new CommandXboxController(
+            OperatorConstants.DRIVER_CONTROLLER_PORT);
+    /** Controller used primarily for operator game piece manipulation. */
+    private final CommandXboxController operatorController = new CommandXboxController(
+            OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public RobotContainer() {
-    // Configure the trigger bindings
-    configureBindings();
-  }
+    /** The container for the robot. Contains subsystems, OI devices, and commands. */
+    public RobotContainer() {
+        // Configure the trigger bindings
+        configureBindings();
+    }
 
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
-   * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
-   * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
-   * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
-   */
-  private void configureBindings() {
-    // Driver intake control bindings.
-    // Change to the coral intake state on press.
-    this.driverController.leftTrigger().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.INTAKE)));
-    // If still intaking on release, we did not get a coral, so go to empty.
-    this.driverController.leftTrigger().negate().and(CoralState.INTAKE.getTrigger())
-        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.EMPTY)));
-    // Driver feedback on successful intake (transition from INTAKE to CARRY).
-    CoralState.INTAKE.getTrigger().negate().and(CoralState.CARRY.getTrigger()).onTrue(
-        Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
-            .andThen(Commands.waitSeconds(0.5))
-            .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
+    /**
+     * Use this method to define your trigger->command mappings. Triggers can be created via the
+     * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
+     * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
+     * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
+     * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
+     */
+    private void configureBindings() {
+        // Driver intake control bindings.
+        // Change to the coral intake state on press.
+        this.driverController.leftTrigger()
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.INTAKE)));
+        // If still intaking on release, we did not get a coral, so go to empty.
+        this.driverController.leftTrigger().negate().and(CoralState.INTAKE.getTrigger())
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.EMPTY)));
+        // Driver feedback on successful intake (transition from INTAKE to CARRY).
+        CoralState.INTAKE.getTrigger().negate().and(CoralState.CARRY.getTrigger())
+                .onTrue(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
+                .andThen(Commands.waitSeconds(0.5))
+                .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
 
-    // Driver coral jammed in hopper agitation bindings.
-    // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake again.
-    this.driverController.rightBumper()
-        .onTrue(Commands.startEnd(
-            () -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
-            () -> CoralState.setCurrentState(CoralState.EMPTY)));
+        // Driver coral jammed in hopper agitation bindings.
+        // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake again.
+        this.driverController.rightBumper()
+                .onTrue(Commands.startEnd(
+                        () -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
+                        () -> CoralState.setCurrentState(CoralState.EMPTY)));
 
-    // Driver prepare to score binding.
-    this.driverController.rightTrigger()
-        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
-    // TODO when have drive train, combine the elevator trigger below with a drive train trigger.
-    /* If preparing to score and subsystems are ready, we are now ready to score. */
-    CoralState.PREPARE_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger())
-        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
-    /* If ready to score and a subsystem is no longer ready, we are back to preparing to score. */
-    CoralState.READY_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger().negate())
-        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+        // Driver prepare to score binding.
+        this.driverController.rightTrigger()
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+        // TODO when have drive train, combine the elevator trigger below with a drive train trigger.
+        /* If preparing to score and subsystems are ready, we are now ready to score. */
+        CoralState.PREPARE_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger())
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
+        /* If ready to score and a subsystem is no longer ready, we are back to preparing to score. */
+        CoralState.READY_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger().negate())
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
 
-    // Driver score coral bindings.
-    // On press, change to score coral state. It will change to empty on its own.
-    this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
+        // Driver score coral bindings.
+        // On press, change to score coral state. It will change to empty on its own.
+        this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
 
-    // Both driver and operator binding for return to carry and elevator to zero.
-    this.driverController.povDown().or(this.operatorController.povDown())
-        .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
+        // Both driver and operator binding for return to carry and elevator to zero.
+        this.driverController.povDown().or(this.operatorController.povDown())
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
-    // Operator target reef level selection bindings.
-    this.operatorController.a().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L1)));
-    this.operatorController.x().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L2)));
-    this.operatorController.b().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L3)));
-    this.operatorController.y().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L4)));
+        // Operator target reef level selection bindings.
+        this.operatorController.a().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L1)));
+        this.operatorController.x().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L2)));
+        this.operatorController.b().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L3)));
+        this.operatorController.y().onTrue(Commands.runOnce(() -> ReefLevel.setCurrentLevel(ReefLevel.L4)));
 
-    // TODO operator bindings for elevator nudges.
-    // self._operator_joystick.rightTrigger().whileTrue(
-    // self.elevator.move_up_gradually()
-    // )
-    // self._operator_joystick.leftTrigger().whileTrue(
-    // self.elevator.move_down_gradually()
-    // )
-  }
+        // Operator bindings for elevator nudges.
+        this.operatorController.rightTrigger().whileTrue(this.elevator.nudgeUpCommand());
+        this.operatorController.leftTrigger().whileTrue(this.elevator.nudgeDownCommand());
+    }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-    return SimpleAutos.doNothing();
-  }
+    /**
+     * Use this to pass the autonomous command to the main {@link Robot} class.
+     *
+     * @return the command to run in autonomous
+     */
+    public Command getAutonomousCommand() {
+        return SimpleAutos.doNothing();
+    }
 }

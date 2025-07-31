@@ -29,6 +29,8 @@ public final class Constants {
     public static final int CANNON_RIGHT_MOTOR_CANID = 15;
     public static final int ELEVATOR_LEFT_MOTOR_CANID = 21;
     public static final int ELEVATOR_RIGHT_MOTOR_CANID = 22;
+    public static final int ALGAE_MANIPULATOR_WHEEL_MOTOR_CANID = 41;
+    public static final int ALGAE_MANIPULATOR_PIVOT_MOTOR_CANID = 42;
   }
 
   /**

@@ -11,15 +11,17 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * always used to get the elevator to the proper level, even for algae.
  * 
  * <p>
- * TODO this certainly needs more work.
+ * TODO this probably needs more work.
  */
 public enum AlgaeState {
     /** The robot starts without an algae and the manipulator is stowed. */
     INACTIVE,
-    /** The robot will actively score the algae into the barge. */
-    LOAD_BARGE,
     /** An algae is to be removed from the reef. */
-    REMOVE_FROM_REEF;
+    REMOVE_FROM_REEF,
+    /** Algae removal done, may have it. Drive team can cancel if not held. */
+    MAY_HAVE_ALGAE,
+    /** The robot will actively score the algae into the barge. */
+    LOAD_BARGE;
 
     /** The current algae state. We always start a match without an algae. */
     private static AlgaeState currentState = INACTIVE;

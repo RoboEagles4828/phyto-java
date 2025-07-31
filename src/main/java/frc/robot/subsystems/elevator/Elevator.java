@@ -35,7 +35,7 @@ public class Elevator extends SubsystemBase {
     /** Usually slot 0, but use slot 1 for highest targets. */
     private int currentTargetPositionPIDSlot = 0;
     /** A {@link Trigger} that is true when {@link #onTarget()} returns true. */
-    private Trigger onTargetTrigger = new Trigger(this::onTarget);
+    private final Trigger onTargetTrigger = new Trigger(this::onTarget);
 
     /** Right side elevator motor is the leader. */
     private final TalonFX rightMotorLeader = new TalonFX(RioBusCANIds.ELEVATOR_RIGHT_MOTOR_CANID);
@@ -61,7 +61,7 @@ public class Elevator extends SubsystemBase {
     private final DutyCycleOut toZeroOrNudge = new DutyCycleOut(0.0);
 
     /** Used to avoid creating a new one after every nudge. */
-    private Command holdPositionPostNudge = this.run(
+    private final Command holdPositionPostNudge = this.run(
             this::gotoAndHoldCurrentTargetPositionRun)
             .withName(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME);
 

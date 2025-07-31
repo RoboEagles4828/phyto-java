@@ -48,7 +48,11 @@ public class Cannon extends SubsystemBase {
      * @return a new command to stop the hopper feed wheels.
      */
     private Command stop() {
-        return this.run(() -> this.setCannonSpeeds(0.0));
+        // Not runOnce to keep the command running (this is the default).
+        // Not run to avoid uneeded CAN bus traffic.
+        return this.startEnd(
+                () -> this.setCannonSpeeds(0.0),
+                () -> this.setCannonSpeeds(0.0));
     }
 
     /**

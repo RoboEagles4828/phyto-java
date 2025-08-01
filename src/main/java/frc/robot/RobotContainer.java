@@ -69,7 +69,7 @@ public class RobotContainer {
         // Driver coral jammed in hopper agitation bindings.
         // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake again.
         this.driverController.rightBumper()
-                .onTrue(Commands.startEnd(
+                .whileTrue(Commands.startEnd(
                         () -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
                         () -> CoralState.setCurrentState(CoralState.EMPTY)));
 

@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.RioBusCANIds;
 import frc.robot.game.CoralState;
+import frc.robot.game.ElevatedLevel;
 import frc.robot.game.ReefLevel;
 
 /**
@@ -112,7 +113,7 @@ public class Cannon extends SubsystemBase {
      * Sets the motor speeds for scoring depending on target reef level.
      */
     private void setScoreSpeeds() {
-        if (ReefLevel.getCurrentLevel() == ReefLevel.L1) {
+        if (ElevatedLevel.getCurrentLevel() == ReefLevel.L1) {
             setCannonSpeeds(CannonConstants.LEFT_SCORE_L1_DUTY_CYCLE, CannonConstants.RIGHT_SCORE_L1_DUTY_CYCLE);
         } else {
             setCannonSpeeds(CannonConstants.LEFT_SCORE_STRAIGHT_DUTY_CYCLE,

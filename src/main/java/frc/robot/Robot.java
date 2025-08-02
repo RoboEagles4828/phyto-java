@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.game.CoralState;
-import frc.robot.game.ReefLevel;
+import frc.robot.game.ElevatedLevel;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in the TimedRobot
@@ -51,7 +51,7 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
 
     SmartDashboard.putString("Coral State", CoralState.getCurrentState().toString());
-    SmartDashboard.putString("Reef Level", ReefLevel.getCurrentLevel().toString());
+    SmartDashboard.putString("Elevated Level", ElevatedLevel.getCurrentLevel().toString());
   }
 
   /** This function is called once each time the robot enters Disabled mode. */

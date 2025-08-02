@@ -21,7 +21,7 @@ class CannonConstants {
     /** Stall debounce time for coral detection. */
     final static double INTAKE_STALL_DEBOUNCE_SEC = 0.3;
     /** Current draw over this limit is considered a stall. */
-    final static double INTAKE_STALL_THRESHOLD_AMPS = 10.0;
+    final static double INTAKE_STALL_THRESHOLD_AMPS = 6.0;
 
     /** Left side duty cycle for straight shot. */
     final static double LEFT_SCORE_STRAIGHT_DUTY_CYCLE = 0.6;

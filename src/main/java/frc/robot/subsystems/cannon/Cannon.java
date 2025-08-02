@@ -86,7 +86,7 @@ public class Cannon extends SubsystemBase {
      */
     private Command stopIntaking() {
         return new WaitUntilCommand(() -> this.intakeStallDetection.calculate(
-                Math.abs(this.leftsideWheels.getStatorCurrent()) > CannonConstants.INTAKE_STALL_THRESHOLD_AMPS));
+                Math.abs(this.rightsideWheels.getStatorCurrent()) > CannonConstants.INTAKE_STALL_THRESHOLD_AMPS));
     }
 
     /**

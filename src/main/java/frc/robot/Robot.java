@@ -51,7 +51,7 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
 
     SmartDashboard.putString("Coral State", CoralState.getCurrentState().toString());
-    SmartDashboard.putString("Elevated Level", ElevatedLevel.getCurrentLevel().toString());
+    SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());
   }
 
   /** This function is called once each time the robot enters Disabled mode. */

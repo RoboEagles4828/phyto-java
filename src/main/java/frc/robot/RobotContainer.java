@@ -11,9 +11,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SimpleAutos;
+import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
-import frc.robot.game.CoralLevel;
 import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
@@ -94,10 +94,10 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
         // Operator target coral scoring level selection bindings.
-        this.operatorController.a().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L1)));
-        this.operatorController.x().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L2)));
-        this.operatorController.b().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L3)));
-        this.operatorController.y().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L4)));
+        this.operatorController.a().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1)));
+        this.operatorController.x().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2)));
+        this.operatorController.b().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3)));
+        this.operatorController.y().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4)));
 
         // Operator bindings for elevator nudges.
         this.operatorController.rightTrigger().whileTrue(this.elevator.nudgeUpCommand());

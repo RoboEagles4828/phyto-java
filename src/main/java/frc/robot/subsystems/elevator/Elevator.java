@@ -94,7 +94,7 @@ public class Elevator extends SubsystemBase {
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
                 .whileTrue(this.gotoAndHoldCurrentTargetPosition());
         /* Handle current elevated level changes. */
-        ElevatedLevel.getChangeEvent().onChange(this::handleElevatedLevelChange);
+        ElevatedLevel.TRACKER.getChangeEvent().onChange(this::handleElevatedLevelChange);
     }
 
     /**
@@ -124,7 +124,7 @@ public class Elevator extends SubsystemBase {
      */
     private void setCurrentTargetPosition() {
         this.setCurrentTargetPosition(ElevatorConstants.LEVEL_TO_POSITION
-                .get(ElevatedLevel.getCurrentLevel()));
+                .get(ElevatedLevel.TRACKER.getCurrentLevel()));
     }
 
     /**

@@ -113,7 +113,7 @@ public class Cannon extends SubsystemBase {
      * Sets the motor speeds for scoring depending on target reef level.
      */
     private void setScoreSpeeds() {
-        if (ElevatedLevel.getCurrentLevel() == CoralLevel.L1) {
+        if (ElevatedLevel.TRACKER.getCurrentLevel() == CoralLevel.L1) {
             setCannonSpeeds(CannonConstants.LEFT_SCORE_L1_DUTY_CYCLE, CannonConstants.RIGHT_SCORE_L1_DUTY_CYCLE);
         } else {
             setCannonSpeeds(CannonConstants.LEFT_SCORE_STRAIGHT_DUTY_CYCLE,

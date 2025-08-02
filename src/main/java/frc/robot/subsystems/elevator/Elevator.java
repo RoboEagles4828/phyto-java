@@ -19,17 +19,11 @@ import frc.robot.Constants.DIOIds;
 import frc.robot.Constants.RioBusCANIds;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
-import frc.robot.game.ReefLevel;
 
 /**
  * The elevator subsystem controls the movement of the elevator to scoring levels and its return to zero.
  */
 public class Elevator extends SubsystemBase {
-    /**
-     * The next {@link ElevatedLevel} to move the elevator when moving to and holding a scoring level. Note that this
-     * must never be null since {@link ElevatorConstants#LEVEL_TO_POSITION} does not support null keys.
-     */
-    private ElevatedLevel nextMovingToPostionElevatedLevel = ReefLevel.L1;
     /** The current elevator target position in mechanism rotations. */
     private double currentTargetPosition = 0.0;
     /** Usually slot 0, but use slot 1 for highest targets. */
@@ -99,33 +93,18 @@ public class Elevator extends SubsystemBase {
                 .or(CoralState.SCORE.getTrigger())
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
                 .whileTrue(this.gotoAndHoldCurrentTargetPosition());
+        /* Handle current elevated level changes. */
+        ElevatedLevel.getChangeEvent().onChange(this::handleElevatedLevelChange);
     }
 
     /**
-     * See the notes on {@link #setNextMovingToPostionElevatedLevel(ElevatedLevel)}. Also note that this is the current
-     * target if we are now moving and holding.
-     * 
-     * @return the level to be targeted the next time we move to a scoring position. Never null.
-     */
-    public ElevatedLevel getNextMovingToPostionElevatedLevel() {
-        return this.nextMovingToPostionElevatedLevel;
-    }
-
-    /**
-     * If we are currently moving to or holding a level (See
+     * If the current elevated level changes while we are moving to or holding a level (See
      * {@link ElevatorConstants#MOVING_TO_AND_HOLDING_COMMAND_NAME}), this new next level is immediately applied and the
-     * elevator will move to it. Otherwise, it is simply stored for the next movement.
-     * 
-     * @param nextMovingToPostionElevatedLevel
-     *            the level to be targeted the next time we move to a scoring position. Note that this level does not
-     *            change if this is null.
+     * elevator will move to it.
      */
-    public void setNextMovingToPostionElevatedLevel(final ElevatedLevel nextMovingToPostionElevatedLevel) {
-        if (nextMovingToPostionElevatedLevel != null) {
-            this.nextMovingToPostionElevatedLevel = nextMovingToPostionElevatedLevel;
-            if (this.getCurrentCommand().getName().startsWith(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME)) {
-                this.setCurrentTargetPosition();
-            }
+    private void handleElevatedLevelChange() {
+        if (this.getCurrentCommand().getName().equals(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME)) {
+            this.setCurrentTargetPosition();
         }
     }
 
@@ -141,11 +120,11 @@ public class Elevator extends SubsystemBase {
 
     /**
      * This sets the target position to move or hold to in mechanism target rotations from 0. The proper PID slot for
-     * the movement is also selected. This position set is derived from the current next elevated level target.
+     * the movement is also selected. This position set is derived from the current elevated level.
      */
     private void setCurrentTargetPosition() {
         this.setCurrentTargetPosition(ElevatorConstants.LEVEL_TO_POSITION
-                .get(this.getNextMovingToPostionElevatedLevel()));
+                .get(ElevatedLevel.getCurrentLevel()));
     }
 
     /**

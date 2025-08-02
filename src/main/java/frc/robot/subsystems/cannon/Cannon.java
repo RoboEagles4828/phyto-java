@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.RioBusCANIds;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
-import frc.robot.game.ReefLevel;
+import frc.robot.game.CoralLevel;
 
 /**
  * The Cannon is used to intake coral from the hopper and to score it on the reef.
@@ -113,7 +113,7 @@ public class Cannon extends SubsystemBase {
      * Sets the motor speeds for scoring depending on target reef level.
      */
     private void setScoreSpeeds() {
-        if (ElevatedLevel.getCurrentLevel() == ReefLevel.L1) {
+        if (ElevatedLevel.getCurrentLevel() == CoralLevel.L1) {
             setCannonSpeeds(CannonConstants.LEFT_SCORE_L1_DUTY_CYCLE, CannonConstants.RIGHT_SCORE_L1_DUTY_CYCLE);
         } else {
             setCannonSpeeds(CannonConstants.LEFT_SCORE_STRAIGHT_DUTY_CYCLE,

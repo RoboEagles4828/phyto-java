@@ -1,9 +1,9 @@
 package frc.robot.game;
 
 /**
- * Defines the scoring levels of the reef.
+ * Defines the scoring coral levels on the reef.
  */
-public enum ReefLevel implements ElevatedLevel {
+public enum CoralLevel implements ElevatedLevel {
     /** Reef level 1, aka the trough. */
     L1,
     /** Reef level 2. */

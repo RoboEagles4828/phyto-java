@@ -12,7 +12,7 @@ import frc.robot.Constants.RioBusCANIds;
 
 /**
  * The algae manipulator is used to remove algae from the reed and, if held during the dealgae operation, score the
- * algae into the reef. There are commands to deploy and retract the arm, and to run the dealgae/scoring wheel.
+ * algae into the barge. There are commands to deploy and retract the arm, and to run the dealgae/scoring wheel.
  * 
  * <p>
  * TODO The python code for the manipulator has some serious issues. For example, the code and comments disagree on

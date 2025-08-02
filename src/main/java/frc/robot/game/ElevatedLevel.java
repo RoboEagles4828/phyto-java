@@ -13,7 +13,7 @@ import frc.robot.util.ValueChangeEvent;
  */
 public interface ElevatedLevel {
     /** The current level. Has to be a reference since all interface variables must be static and final. */
-    final static AtomicReference<ElevatedLevel> currentLevel = new AtomicReference<>(ReefLevel.L1);
+    final static AtomicReference<ElevatedLevel> currentLevel = new AtomicReference<>(CoralLevel.L1);
     /** The {@link ValueChangeEvent} for the current elevated level. */
     final static ValueChangeEvent<ElevatedLevel> changeEvent = new ValueChangeEvent<>(ElevatedLevel::getCurrentLevel);
 

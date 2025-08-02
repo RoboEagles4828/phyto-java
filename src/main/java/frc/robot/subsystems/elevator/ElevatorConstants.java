@@ -11,7 +11,7 @@ import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import frc.robot.game.AlgaeLevel;
 import frc.robot.game.ElevatedLevel;
-import frc.robot.game.ReefLevel;
+import frc.robot.game.CoralLevel;
 
 /**
  * Defines constants used only within the elevator subsystem. Note that the python code defined motion magic constants
@@ -24,10 +24,10 @@ class ElevatorConstants {
      * does not support null keys nor values.
      */
     static final Map<ElevatedLevel, Double> LEVEL_TO_POSITION = Map.of(
-            ReefLevel.L1, 1.105,
-            ReefLevel.L2, 1.9,
-            ReefLevel.L3, 2.84,
-            ReefLevel.L4, 4.102,
+            CoralLevel.L1, 1.105,
+            CoralLevel.L2, 1.9,
+            CoralLevel.L3, 2.84,
+            CoralLevel.L4, 4.102,
             AlgaeLevel.DEALGAE_LOW, 2.0,
             AlgaeLevel.DEALGAE_HIGH, 3.0,
             AlgaeLevel.SCORE_BARGE, 4.102);

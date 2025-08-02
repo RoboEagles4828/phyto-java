@@ -13,7 +13,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SimpleAutos;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
-import frc.robot.game.ReefLevel;
+import frc.robot.game.CoralLevel;
 import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
@@ -93,11 +93,11 @@ public class RobotContainer {
         this.driverController.povDown().or(this.operatorController.povDown())
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
-        // Operator target reef level selection bindings.
-        this.operatorController.a().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(ReefLevel.L1)));
-        this.operatorController.x().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(ReefLevel.L2)));
-        this.operatorController.b().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(ReefLevel.L3)));
-        this.operatorController.y().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(ReefLevel.L4)));
+        // Operator target coral scoring level selection bindings.
+        this.operatorController.a().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L1)));
+        this.operatorController.x().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L2)));
+        this.operatorController.b().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L3)));
+        this.operatorController.y().onTrue(Commands.runOnce(() -> ElevatedLevel.setCurrentLevel(CoralLevel.L4)));
 
         // Operator bindings for elevator nudges.
         this.operatorController.rightTrigger().whileTrue(this.elevator.nudgeUpCommand());

@@ -1,7 +1,5 @@
 package frc.robot.game;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import frc.robot.util.ValueChangeEvent;
 
 /**

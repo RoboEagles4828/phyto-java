@@ -1,5 +1,6 @@
 package frc.robot.game;
 
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.util.ValueChangeEvent;
 
 /**
@@ -11,6 +12,10 @@ public class ElevatedLevelTracker {
     private ElevatedLevel currentLevel = CoralLevel.L1;
     /** The {@link ValueChangeEvent} for the current elevated level. */
     private ValueChangeEvent<ElevatedLevel> changeEvent = new ValueChangeEvent<>(this::getCurrentLevel);
+    /** Trigger that is true when the current level is a coral scoring level. */
+    private Trigger isCoralLevelTrigger = new Trigger(this::isCurrentCoralLevel);
+    /** Trigger that is true when the current level is an algae level. */
+    private Trigger isAlgaeLevelTrigger = new Trigger(this::isCurrentAlgaeLevel);
 
     /**
      * Creates the tracker. Formally declared to be package scoped.
@@ -49,8 +54,15 @@ public class ElevatedLevelTracker {
     /**
      * @return true if the current elevated level is a coral scoring level.
      */
-    public boolean isCurrentReefLevel() {
+    public boolean isCurrentCoralLevel() {
         return getCurrentLevel().getClass() == CoralLevel.class;
+    }
+
+    /**
+     * @return trigger that is true when the current level is a coral scoring level.
+     */
+    public Trigger getIsCurrentCoralLevelTrigger() {
+        return this.isCoralLevelTrigger;
     }
 
     /**
@@ -58,5 +70,12 @@ public class ElevatedLevelTracker {
      */
     public boolean isCurrentAlgaeLevel() {
         return getCurrentLevel().getClass() == AlgaeLevel.class;
+    }
+
+    /**
+     * @return trigger that is true when the current level is an algae level.
+     */
+    public Trigger getIsCurrentAlgaeLevelTrigger() {
+        return this.isAlgaeLevelTrigger;
     }
 }

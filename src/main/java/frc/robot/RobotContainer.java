@@ -63,11 +63,12 @@ public class RobotContainer {
         // Driver feedback on successful intake (transition from INTAKE to CARRY).
         CoralState.INTAKE.getTrigger().negate().and(CoralState.CARRY.getTrigger())
                 .onTrue(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
-                .andThen(Commands.waitSeconds(0.5))
-                .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
+                        .andThen(Commands.waitSeconds(0.5))
+                        .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
 
         // Driver coral jammed in hopper agitation bindings.
-        // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake again.
+        // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake
+        // again.
         this.driverController.rightBumper()
                 .whileTrue(Commands.startEnd(
                         () -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
@@ -93,10 +94,14 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
         // Operator target coral scoring level selection bindings.
-        this.operatorController.a().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1)));
-        this.operatorController.x().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2)));
-        this.operatorController.b().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3)));
-        this.operatorController.y().onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4)));
+        this.operatorController.a()
+                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1)));
+        this.operatorController.x()
+                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2)));
+        this.operatorController.b()
+                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3)));
+        this.operatorController.y()
+                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4)));
 
         // Operator bindings for elevator nudges.
         this.operatorController.rightTrigger().whileTrue(this.elevator.nudgeUpCommand());

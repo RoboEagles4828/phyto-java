@@ -11,12 +11,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * Factory methods for simple autos that do not use path planner.
  */
 public final class SimpleAutos {
-  /** Example static factory for an autonomous command. */
-  public static Command doNothing() {
-    return Commands.print("Do nothing auto.");
-  }
+    /** Example static factory for an autonomous command. */
+    public static Command doNothing() {
+        return Commands.print("Do nothing auto.");
+    }
 
-  private SimpleAutos() {
-    throw new UnsupportedOperationException("This is a utility class!");
-  }
+    private SimpleAutos() {
+        throw new UnsupportedOperationException("This is a utility class!");
+    }
 }

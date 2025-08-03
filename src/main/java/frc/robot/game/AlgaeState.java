@@ -32,7 +32,14 @@ public enum AlgaeState {
      * Called to create each enumeration value. A trigger for each value.
      */
     private AlgaeState() {
-        this.trigger = new Trigger(() -> getCurrentState() == this);
+        this.trigger = new Trigger(this::isCurrent);
+    }
+
+    /**
+     * @return true if this enum value is the current state, or false otherwise.
+     */
+    public boolean isCurrent() {
+        return getCurrentState() == this;
     }
 
     /**

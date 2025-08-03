@@ -55,12 +55,11 @@ public class RobotContainer {
      */
     private void configureBindings() {
         // Driver intake control bindings.
-        // Change to the coral intake state on press.
+        // Intake button binding.
         this.driverController.leftTrigger()
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.INTAKE)));
-        // If still intaking on release, we did not get a coral, so go to empty.
-        this.driverController.leftTrigger().negate().and(CoralState.INTAKE.getTrigger())
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.EMPTY)));
+                .whileTrue(Commands.startEnd(
+                        () -> CoralState.setCurrentState(CoralState.INTAKE),
+                        this::endIntakeProcessing));
         // Driver feedback on successful intake (transition from INTAKE to CARRY).
         CoralState.INTAKE.getTrigger().negate().and(CoralState.CARRY.getTrigger())
                 .onTrue(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
@@ -102,6 +101,17 @@ public class RobotContainer {
         // Operator bindings for elevator nudges.
         this.operatorController.rightTrigger().whileTrue(this.elevator.nudgeUpCommand());
         this.operatorController.leftTrigger().whileTrue(this.elevator.nudgeDownCommand());
+    }
+
+    /**
+     * If the coral state is still intaking when called, go to the empty state. This is designed for the intake button
+     * release. If the intake was successful, the state will be carry when we get here and this method will not change
+     * it.
+     */
+    private void endIntakeProcessing() {
+        if (CoralState.INTAKE.isCurrent()) {
+            CoralState.setCurrentState(CoralState.EMPTY);
+        }
     }
 
     /**

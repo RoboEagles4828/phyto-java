@@ -11,9 +11,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.RioBusCANIds;
+import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
-import frc.robot.game.CoralLevel;
 
 /**
  * The Cannon is used to intake coral from the hopper and to score it on the reef.
@@ -41,8 +41,9 @@ public class Cannon extends SubsystemBase {
         this.setDefaultCommand(this.stop());
         // Intake until coral detected or the coral state changes from intake.
         CoralState.INTAKE.getTrigger().whileTrue(this.intake());
-        // Score coral while coral state is scoring.
-        CoralState.SCORE.getTrigger().whileTrue(this.score());
+        // Score coral while elevated to a coral scoring position and the coral state is scoring.
+        ElevatedLevel.TRACKER.getIsCurrentCoralLevelTrigger().and(CoralState.SCORE.getTrigger())
+                .whileTrue(this.score());
     }
 
     /**

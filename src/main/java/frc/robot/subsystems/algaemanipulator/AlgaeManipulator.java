@@ -8,7 +8,9 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.RioBusCANIds;
+import frc.robot.game.CoralState;
 
 /**
  * The algae manipulator is used to remove algae from the reed and, if held during the dealgae operation, score the
@@ -35,6 +37,8 @@ public class AlgaeManipulator extends SubsystemBase {
     private final Debouncer pivotStallDetection = new Debouncer(
             AlgaeManipulatorConstants.PIVOT_STALL_DEBOUNCE_SEC,
             DebounceType.kBoth);
+    /** A {@link Trigger} that is true when not scoring algae or the manipulator is properly configured. */
+    private final Trigger readyToScoreTrigger = new Trigger(() -> true); // TODO implement
 
     /**
      * Creates the algae manipulator subsystem, configures the motors, and creates game piece state bindings.
@@ -47,6 +51,17 @@ public class AlgaeManipulator extends SubsystemBase {
         this.setDefaultCommand(this.stop());
 
         // TODO add algae state bindings here and in robot container.
+    }
+
+    /**
+     * This trigger can be combined with similar triggers from other subsystems to decide when to transition from
+     * {@link CoralState#PREPARE_TO_SCORE} to {@link CoralState#READY_TO_SCORE} and vice versa.
+     * 
+     * @return a trigger that is true when not scoring algae, or we are scoring algae and the manipulator is properly
+     *         configured.
+     */
+    public Trigger getReadyToScoreTrigger() {
+        return this.readyToScoreTrigger;
     }
 
     /**

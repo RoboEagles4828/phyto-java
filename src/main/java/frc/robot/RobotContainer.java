@@ -14,6 +14,7 @@ import frc.robot.commands.SimpleAutos;
 import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
+import frc.robot.subsystems.algaemanipulator.AlgaeManipulator;
 import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
@@ -30,6 +31,8 @@ public class RobotContainer {
     /** The coral cannon used for intake and scoring. */
     @SuppressWarnings("unused")
     private final Cannon coralCannon = new Cannon();
+    /** The algae manipulator is used to remove algae from the reef and score them in the barge. */
+    private final AlgaeManipulator algaeManipulator = new AlgaeManipulator();
     /** The elevator is used to move game piece manipulators between levels. */
     private final Elevator elevator = new Elevator();
 
@@ -67,8 +70,7 @@ public class RobotContainer {
                         .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
 
         // Driver coral jammed in hopper agitation bindings.
-        // On press, change to the coral jammed in hopper state. On release, change to empty to be ready to intake
-        // again.
+        // On press, change to the hopper jammed state. On release, change to empty to be ready to intake again.
         this.driverController.rightBumper()
                 .whileTrue(Commands.startEnd(
                         () -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
@@ -77,9 +79,11 @@ public class RobotContainer {
         // Driver prepare to score binding.
         this.driverController.rightTrigger()
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
-        // TODO when have drive train, combine the elevator trigger below with a drive train trigger.
+        // TODO when have drive train, add it to this compound trigger.
         /* If preparing to score and subsystems are ready, we are now ready to score. */
-        CoralState.PREPARE_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger())
+        CoralState.PREPARE_TO_SCORE.getTrigger()
+                .and(this.elevator.getReadyToScoreTrigger())
+                .and(this.algaeManipulator.getReadyToScoreTrigger())
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
         /* If ready to score and a subsystem is no longer ready, we are back to preparing to score. */
         CoralState.READY_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger().negate())

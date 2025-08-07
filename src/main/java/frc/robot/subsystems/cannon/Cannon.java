@@ -97,9 +97,11 @@ public class Cannon extends SubsystemBase {
      * @return a command to score coral until the stop scoring condition is detected.
      */
     private Command score() {
-        return this.run(this::setScoreSpeeds)
-                .withDeadline(this.stopScoring())
-                .andThen(this.runOnce(() -> CoralState.setCurrentState(CoralState.EMPTY)));
+        return this
+                .startEnd(
+                        this::setScoreSpeeds,
+                        () -> CoralState.setCurrentState(CoralState.EMPTY))
+                .withDeadline(this.stopScoring());
     }
 
     /**

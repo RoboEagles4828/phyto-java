@@ -20,6 +20,8 @@ public class AlgaeManipulatorConstants {
     final static double PIVOT_STALL_DEBOUNCE_SEC = 0.3;
     /** Current draw over this limit is considered a pivot stall. */
     final static double PIVOT_STALL_THRESHOLD_AMPS = 20.0; // TODO verify this.
+    /** Only wait this long for arm deploy or retract pivot stall. */
+    final static double PIVOT_STALL_TIMEOUT_SEC = 2.0; // TODO find proper value.
 
     /** Percent power while deploying the arm to remove algae from the reef. */
     final static double DEPLOY_ARM_DUTY_CYCLE = 0.2; // TODO verify sign and magnitude

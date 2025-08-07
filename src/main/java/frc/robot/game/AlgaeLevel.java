@@ -1,7 +1,7 @@
 package frc.robot.game;
 
 /**
- * Defines the interesting levels for algae.
+ * Defines the scoring levels for algae.
  */
 public enum AlgaeLevel implements ElevatedLevel {
     /** Algae removal low. */

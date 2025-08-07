@@ -1,13 +1,10 @@
 package frc.robot.game;
 
-import frc.robot.util.ValueChangeEvent;
-
 /**
  * A marker interface for levels the elevator needs to drive to.
  * 
  * <p>
- * This interface also provides {@link ValueChangeEvent} for the current elevated level. That is the event will fire
- * each time the current elevated level changes.
+ * This interface also provides the {@link ElevatedLevelTracker} for the robot.
  */
 public interface ElevatedLevel {
     /**

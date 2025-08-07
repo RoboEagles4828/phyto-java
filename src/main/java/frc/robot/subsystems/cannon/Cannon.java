@@ -148,9 +148,4 @@ public class Cannon extends SubsystemBase {
         SmartDashboard.putNumber("Cannon / Left Stator Current", this.leftsideWheels.getStatorCurrent());
         SmartDashboard.putNumber("Cannon / Right Stator Current", this.rightsideWheels.getStatorCurrent());
     }
-
-    @Override
-    public void simulationPeriodic() {
-        // This method will be called once per scheduler run during simulation
-    }
 }

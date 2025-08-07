@@ -64,9 +64,4 @@ public class Hopper extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Hopper / Stator Current", this.feedWheels.getStatorCurrent());
     }
-
-    @Override
-    public void simulationPeriodic() {
-        // This method will be called once per scheduler run during simulation
-    }
 }

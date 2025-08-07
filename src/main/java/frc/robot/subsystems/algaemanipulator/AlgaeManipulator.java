@@ -19,18 +19,6 @@ import frc.robot.game.ElevatedLevel;
 /**
  * The algae manipulator is used to remove algae from the reef and, if held during the dealgae operation, score the
  * algae into the barge. There are commands to deploy and retract the arm, and to run the dealgae/scoring wheel.
- * 
- * <p>
- * TODO The python code for the manipulator has some serious issues. For example, the code and comments disagree on
- * which duty cycle sign pivots the arm up or down. Going with the code here. Also, the "deAlgaefyingCommand" command
- * defined in the python robot container, appears to timeout much too quickly. We should be detecting stall or a slow
- * down of the wheel here (or perhaps leave to operator via a whileTrue). Finally, if holding an algae, we may want to
- * keep a small amount of power to the wheel to help hold it.
- * 
- * <p>
- * TODO Currently (and this may be ok), this commands here do not change coral state so as to move the elevator to the
- * proper level for algae work. That is left to the button bindings in robot container. This may or may not be correct.
- * This is just a reminder to consider it.
  */
 public class AlgaeManipulator extends SubsystemBase {
     /** Motor to dealgae the reef (inward) and score (outward). */
@@ -219,6 +207,9 @@ public class AlgaeManipulator extends SubsystemBase {
      * TODO add retract arm (never in old code base). Not sure how to trigger it. May the may have algae state? May need
      * different arm stall sensitivity or just time this particular retraction.
      * 
+     * <p>
+     * TODO consider a small inward duty cycle while in may have algae state.
+     * 
      * @return a command to run the wheel to remove algae from the reef.
      */
     private Command removeAlgaeFromReef() {
@@ -247,8 +238,8 @@ public class AlgaeManipulator extends SubsystemBase {
      * @return a command to score algae in to the barge and then retract the arm.
      */
     private Command scoreAlgaeIntoBarge() {
-        return this.runOnce(() -> this.setWheelDutyCycle(AlgaeManipulatorConstants.SCORE_DUTY_CYCLE))
-                .andThen(Commands.waitSeconds(AlgaeManipulatorConstants.SCORE_DURATION_SEC))
+        return this.runOnce(() -> this.setWheelDutyCycle(AlgaeManipulatorConstants.SCORE_BARGE_DUTY_CYCLE))
+                .andThen(Commands.waitSeconds(AlgaeManipulatorConstants.SCORE_BARGE_DURATION_SEC))
                 .andThen(runOnce(this::stopWheel))
                 .andThen(this::retractArm);
     }

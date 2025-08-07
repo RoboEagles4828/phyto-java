@@ -15,6 +15,16 @@ import frc.robot.game.ElevatedLevel;
  * The methods in this class are called automatically corresponding to each mode, as described in the TimedRobot
  * documentation. If you change the name of this class or the package after creating this project, you must also update
  * the Main.java file in the project.
+ * 
+ * <p>
+ * TODO consider time slicing our major periodic work across the 20ms heartbeat. For example:
+ * <ol>
+ * <li>robot periodic functions (required and enforced to always be first). Keep minimal.
+ * <li>dashboard updates (not in subsystem periodics but our own method)
+ * <li>update odometry from vision
+ * <li>command scheduler
+ * <li>logging?
+ * </ol>
  */
 public class Robot extends TimedRobot {
     /** Command selected for execution during {@link #autonomousInit()} */

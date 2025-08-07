@@ -8,10 +8,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 /**
- * Factory methods for simple autos that do not use path planner.
+ * Factory methods for simple autos that do not use path following.
+ * 
+ * <p>
+ * TODO when we have a drive train, add just move, and move and score L1 autos.
  */
 public final class SimpleAutos {
-    /** Example static factory for an autonomous command. */
+    /**
+     * @return a command that does nothing.
+     */
     public static Command doNothing() {
         return Commands.print("Do nothing auto.");
     }

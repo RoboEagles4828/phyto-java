@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
  * Defines the various states a coral game piece can enter while the robot interacts with it.
+ * TODO refactor or rename to make sense as both coral and algae states.
  */
 public enum CoralState {
     /** There is no coral in the robot (that we know of). */
@@ -18,6 +19,8 @@ public enum CoralState {
     READY_TO_SCORE,
     /** The robot will actively score the coral onto the reef. */
     SCORE,
+    /** The robot attempted to remove algae from reef and may be holding it. */
+    MAY_HAVE_ALGAE,
     /** The coral is jammed in the hopper. Agitation will be performmed. */
     HOPPER_JAMMED,
     /** The coral is jammed below the cannon. Raise elevator and driver should work to free it. */

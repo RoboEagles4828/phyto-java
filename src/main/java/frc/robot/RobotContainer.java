@@ -80,18 +80,25 @@ public class RobotContainer {
         this.driverController.rightTrigger()
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
         // TODO when have drive train, add it to this compound trigger.
-        /* If preparing to score and subsystems are ready, we are now ready to score. */
-        CoralState.PREPARE_TO_SCORE.getTrigger()
-                .and(this.elevator.getReadyToScoreTrigger())
-                .and(this.algaeManipulator.getReadyToScoreTrigger())
+        final Trigger robotReadyToScoreTrigger = this.elevator.getReadyToScoreTrigger()
+                .and(this.algaeManipulator.getReadyToScoreTrigger());
+        // If preparing to score and subsystems are ready, we are now ready to score.
+        CoralState.PREPARE_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger)
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
-        /* If ready to score and a subsystem is no longer ready, we are back to preparing to score. */
-        CoralState.READY_TO_SCORE.getTrigger().and(this.elevator.getReadyToScoreTrigger().negate())
+        // If ready to score and a subsystem is no longer ready, we are back to preparing to score.
+        CoralState.READY_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger.negate())
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
 
-        // Driver score coral bindings.
-        // On press, change to score coral state. It will change to empty on its own.
+        // Driver score (coral or algae) bindings.
+        // Note that the driver should treat the left bumper like a while held in all cases.
+        // On press, change to score state. For coral, it will change to empty on its own.
         this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
+        // For removing algae from the reef, we want to behave like whileHeld and go to may have algae. The driver can
+        // observe if algae is actually present and decide what to do next.
+        this.driverController.leftBumper().negate()
+                .and(ElevatedLevel.TRACKER.getIsCurrentAlgaeLevelTrigger())
+                .and(() -> this.algaeManipulator.isDealgae())
+                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE)));
 
         // Both driver and operator binding for return to carry and elevator to zero.
         this.driverController.povDown().or(this.operatorController.povDown())

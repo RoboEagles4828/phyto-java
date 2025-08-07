@@ -57,7 +57,6 @@ public class AlgaeManipulator extends SubsystemBase {
         // The algae manipulator is usually fully stopped.
         this.setDefaultCommand(this.stop());
 
-        // TODO add state bindings here and in robot container.
         // Yes, we are reusing coral triggers.
         // TODO consider refactoring state enums (or elim AlgaeState and rename CoralState).
         ElevatedLevel.TRACKER.getIsCurrentAlgaeLevelTrigger().and(CoralState.PREPARE_TO_SCORE.getTrigger())
@@ -66,7 +65,7 @@ public class AlgaeManipulator extends SubsystemBase {
         // Yes, we are reusing the same SCORE trigger.
         ElevatedLevel.TRACKER.getIsCurrentAlgaeLevelTrigger().and(CoralState.SCORE.getTrigger())
                 .whileTrue(this.score());
-        // TODO Handle current elevated level changes.
+        // TODO Handle current elevated level changes. Need this to smoothly go from dealgae to barge loading.
         // ElevatedLevel.TRACKER.getChangeEvent().onChange(this::handleElevatedLevelChange);
     }
 
@@ -114,7 +113,7 @@ public class AlgaeManipulator extends SubsystemBase {
     /**
      * @return true if the current scoring level is for dealgae work on the reef.
      */
-    private boolean isDealgae() {
+    public boolean isDealgae() {
         final ElevatedLevel currentLevel = ElevatedLevel.TRACKER.getCurrentLevel();
         return (currentLevel == AlgaeLevel.DEALGAE_LOW) || (currentLevel == AlgaeLevel.DEALGAE_HIGH);
     }
@@ -216,12 +215,18 @@ public class AlgaeManipulator extends SubsystemBase {
     /**
      * This simply runs the motor for now.
      * 
+     * <p>
+     * TODO add retract arm (never in old code base). Not sure how to trigger it. May the may have algae state? May need
+     * different arm stall sensitivity or just time this particular retraction.
+     * 
      * @return a command to run the wheel to remove algae from the reef.
      */
     private Command removeAlgaeFromReef() {
-        return this.startEnd(
-                () -> this.setWheelDutyCycle(AlgaeManipulatorConstants.INTAKE_DUTY_CYCLE),
-                this::stopWheel);
+        return this
+                .startEnd(
+                        () -> this.setWheelDutyCycle(AlgaeManipulatorConstants.INTAKE_DUTY_CYCLE),
+                        this::stopWheel)
+                .until(() -> CoralState.getCurrentState() == CoralState.MAY_HAVE_ALGAE);
     }
 
     /**
@@ -230,9 +235,10 @@ public class AlgaeManipulator extends SubsystemBase {
      * @return a command to retract the algae arm.
      */
     private Command retractArm() {
-        return this.startEnd(
-                () -> this.setPivotDutyCycle(AlgaeManipulatorConstants.RETRACT_ARM_DUTY_CYCLE),
-                this::stopPivot)
+        return this
+                .startEnd(
+                        () -> this.setPivotDutyCycle(AlgaeManipulatorConstants.RETRACT_ARM_DUTY_CYCLE),
+                        this::stopPivot)
                 .until(this::pivotStallDetected)
                 .withTimeout(AlgaeManipulatorConstants.PIVOT_STALL_TIMEOUT_SEC);
     }

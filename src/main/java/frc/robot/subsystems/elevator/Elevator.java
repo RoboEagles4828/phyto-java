@@ -91,6 +91,7 @@ public class Elevator extends SubsystemBase {
         CoralState.PREPARE_TO_SCORE.getTrigger()
                 .or(CoralState.READY_TO_SCORE.getTrigger())
                 .or(CoralState.SCORE.getTrigger())
+                .or(CoralState.MAY_HAVE_ALGAE.getTrigger())
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
                 .whileTrue(this.gotoAndHoldCurrentTargetPosition());
         /* Handle current elevated level changes. */

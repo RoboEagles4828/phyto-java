@@ -113,6 +113,8 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
 
         // Both driver and operator binding for return to carry and elevator to zero.
+        // TODO consider going to EMPTY and when we get to zero, run intake for a moment to decide between
+        // EMPTY/CARRY.
         this.driverController.povDown().or(this.operatorController.povDown())
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 

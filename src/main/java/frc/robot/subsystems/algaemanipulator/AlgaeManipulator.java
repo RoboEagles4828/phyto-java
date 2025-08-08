@@ -52,8 +52,6 @@ public class AlgaeManipulator extends SubsystemBase {
         // Yes, we are reusing the same SCORE trigger.
         ElevatedLevel.TRACKER.getIsCurrentAlgaeLevelTrigger().and(CoralState.SCORE.getTrigger())
                 .whileTrue(this.score());
-        // TODO Handle current elevated level changes. Need this to smoothly go from dealgae to barge loading.
-        // ElevatedLevel.TRACKER.getChangeEvent().onChange(this::handleElevatedLevelChange);
     }
 
     /**

@@ -93,7 +93,7 @@ public class RobotContainer {
         // Note that the driver should treat the left bumper like a while held in all cases.
         // On press, change to score state. For coral, it will change to empty on its own.
         this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
-        // For removing algae from the reef, we want to behave like whileHeld and go to may have algae. The driver can
+        // For removing algae from the reef, we want to behave like whileTrue and go to may have algae. The driver can
         // observe if algae is actually present and decide what to do next.
         this.driverController.leftBumper().negate()
                 .and(ElevatedLevel.TRACKER.getIsCurrentAlgaeLevelTrigger())
@@ -117,6 +117,10 @@ public class RobotContainer {
         // Operator bindings for elevator nudges.
         this.operatorController.rightTrigger().whileTrue(this.elevator.nudgeUpCommand());
         this.operatorController.leftTrigger().whileTrue(this.elevator.nudgeDownCommand());
+
+        // Operator bindings for manual algae manipulator arm movement.
+        this.operatorController.povLeft().whileTrue(this.algaeManipulator.manualDeployArm());
+        this.operatorController.povRight().whileTrue(this.algaeManipulator.manualRetractArm());
     }
 
     /**

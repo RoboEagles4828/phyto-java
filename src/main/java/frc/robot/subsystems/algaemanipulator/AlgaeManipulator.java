@@ -33,7 +33,6 @@ public class AlgaeManipulator extends SubsystemBase {
     private boolean readyToScore = false;
     /** A {@link Trigger} that is true when not scoring algae or the manipulator is properly configured. */
     private final Trigger readyToScoreTrigger = new Trigger(this::evaluateReadyToScore);
-    // TODO add manual arm
 
     /**
      * Creates the algae manipulator subsystem, configures the motors, and creates game piece state bindings.
@@ -69,6 +68,34 @@ public class AlgaeManipulator extends SubsystemBase {
     }
 
     /**
+     * @return true if the current scoring level is for dealgae work on the reef.
+     */
+    public boolean isDealgae() {
+        final ElevatedLevel currentLevel = ElevatedLevel.TRACKER.getCurrentLevel();
+        return (currentLevel == AlgaeLevel.DEALGAE_LOW) || (currentLevel == AlgaeLevel.DEALGAE_HIGH);
+    }
+
+    /**
+     * @return a command to manually deploy the arm. Designed for whileTrue or with added terminating condition.
+     */
+    public Command manualDeployArm() {
+        return this
+                .startEnd(
+                        () -> this.setPivotDutyCycle(AlgaeManipulatorConstants.DEPLOY_ARM_DUTY_CYCLE),
+                        this::stopPivot);
+    }
+
+    /**
+     * @return a command to manually retract the arm. Designed for whileTrue or with added terminating condition.
+     */
+    public Command manualRetractArm() {
+        return this
+                .startEnd(
+                        () -> this.setPivotDutyCycle(AlgaeManipulatorConstants.RETRACT_ARM_DUTY_CYCLE),
+                        this::stopPivot);
+    }
+
+    /**
      * @return true when not scoring algae, or we are scoring algae and the manipulator is properly configured.
      */
     private boolean evaluateReadyToScore() {
@@ -96,14 +123,6 @@ public class AlgaeManipulator extends SubsystemBase {
                 deployArm(),
                 stop().andThen(runOnce(() -> this.readyToScore = true)),
                 this::isDealgae);
-    }
-
-    /**
-     * @return true if the current scoring level is for dealgae work on the reef.
-     */
-    public boolean isDealgae() {
-        final ElevatedLevel currentLevel = ElevatedLevel.TRACKER.getCurrentLevel();
-        return (currentLevel == AlgaeLevel.DEALGAE_LOW) || (currentLevel == AlgaeLevel.DEALGAE_HIGH);
     }
 
     /**
@@ -178,10 +197,7 @@ public class AlgaeManipulator extends SubsystemBase {
      * @return a command to deploy the algae arm.
      */
     private Command deployArm() {
-        return this
-                .startEnd(
-                        () -> this.setPivotDutyCycle(AlgaeManipulatorConstants.DEPLOY_ARM_DUTY_CYCLE),
-                        this::stopPivot)
+        return this.manualDeployArm()
                 .until(this::pivotStallDetected)
                 .withTimeout(AlgaeManipulatorConstants.PIVOT_STALL_TIMEOUT_SEC);
     }
@@ -226,10 +242,7 @@ public class AlgaeManipulator extends SubsystemBase {
      * @return a command to retract the algae arm.
      */
     private Command retractArm() {
-        return this
-                .startEnd(
-                        () -> this.setPivotDutyCycle(AlgaeManipulatorConstants.RETRACT_ARM_DUTY_CYCLE),
-                        this::stopPivot)
+        return this.manualRetractArm()
                 .until(this::pivotStallDetected)
                 .withTimeout(AlgaeManipulatorConstants.PIVOT_STALL_TIMEOUT_SEC);
     }

@@ -8,9 +8,11 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SimpleAutos;
+import frc.robot.game.AlgaeLevel;
 import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
@@ -63,8 +65,8 @@ public class RobotContainer {
                 .whileTrue(Commands.startEnd(
                         () -> CoralState.setCurrentState(CoralState.INTAKE),
                         this::endIntakeProcessing));
-        // Driver feedback on successful intake (transition from INTAKE to CARRY).
-        CoralState.INTAKE.getTrigger().negate().and(CoralState.CARRY.getTrigger())
+        // Driver feedback on successful intake (transition from INTAKE to CARRY in teleop).
+        RobotModeTriggers.teleop().and(CoralState.INTAKE.getTrigger().negate()).and(CoralState.CARRY.getTrigger())
                 .onTrue(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
                         .andThen(Commands.waitSeconds(0.5))
                         .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
@@ -79,6 +81,8 @@ public class RobotContainer {
         // Driver prepare to score binding.
         this.driverController.rightTrigger()
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+
+        // Subsystem derived prepare to score to ready to score bindings.
         // TODO when have drive train, add it to this compound trigger.
         final Trigger robotReadyToScoreTrigger = this.elevator.getReadyToScoreTrigger()
                 .and(this.algaeManipulator.getReadyToScoreTrigger());
@@ -93,12 +97,20 @@ public class RobotContainer {
         // Note that the driver should treat the left bumper like a while held in all cases.
         // On press, change to score state. For coral, it will change to empty on its own.
         this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
-        // For removing algae from the reef, we want to behave like whileTrue and go to may have algae. The driver can
-        // observe if algae is actually present and decide what to do next.
+        // For removing algae from the reef, we want to behave like whileTrue and go to the may have algae state. The
+        // driver can observe if algae is actually present and decide what to do next.
         this.driverController.leftBumper().negate()
                 .and(ElevatedLevel.TRACKER.getIsCurrentAlgaeLevelTrigger())
                 .and(() -> this.algaeManipulator.isDealgae())
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE)));
+
+        // Driver controller algae scoring level selection bindings.
+        this.driverController.a()
+                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_LOW)));
+        this.driverController.b()
+                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_HIGH)));
+        this.driverController.y()
+                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
 
         // Both driver and operator binding for return to carry and elevator to zero.
         this.driverController.povDown().or(this.operatorController.povDown())

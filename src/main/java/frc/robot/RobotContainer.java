@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SimpleAutos;
@@ -60,16 +59,15 @@ public class RobotContainer {
      */
     private void configureBindings() {
         // Driver intake control bindings.
-        // Intake button binding.
+        // Intake button binding. Rumble only happens on normal (not interrupted by button release) completion.
         this.driverController.leftTrigger()
                 .whileTrue(Commands.startEnd(
                         () -> CoralState.setCurrentState(CoralState.INTAKE),
-                        this::endIntakeProcessing));
-        // Driver feedback on successful intake (transition from INTAKE to CARRY in teleop).
-        RobotModeTriggers.teleop().and(CoralState.INTAKE.getTrigger().negate()).and(CoralState.CARRY.getTrigger())
-                .onTrue(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
-                        .andThen(Commands.waitSeconds(0.5))
-                        .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))));
+                        this::endIntakeProcessing)
+                        .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
+                                .andThen(Commands.waitSeconds(0.5))
+                                .andThen(Commands
+                                        .runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0)))));
 
         // Driver coral jammed in hopper agitation bindings.
         // On press, change to the hopper jammed state. On release, change to empty to be ready to intake again.

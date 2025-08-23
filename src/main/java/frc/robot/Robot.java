@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -20,6 +22,14 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
+   //SmartDashboard.putNumber("Speed", m_moduleMechanisms[0].getVelocity);
+   SmartDashboard.putNumber("Module 0", m_robotContainer.drivetrain.getModule(0).getDriveMotor().getVelocity().getValueAsDouble());
+   SmartDashboard.putNumber("Module 1", m_robotContainer.drivetrain.getModule(1).getDriveMotor().getVelocity().getValueAsDouble());
+   SmartDashboard.putNumber("Module 2", m_robotContainer.drivetrain.getModule(2).getDriveMotor().getVelocity().getValueAsDouble());
+   SmartDashboard.putNumber("Module 3", m_robotContainer.drivetrain.getModule(3).getDriveMotor().getVelocity().getValueAsDouble());
+
+   //SmartDashboard.putNumber("Module0 Angle", m_robotContainer.drivetrain.getModule(0).getSteerMotor().getPosition().getValueAsDouble());
+
     
   }
 

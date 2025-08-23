@@ -10,8 +10,8 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import frc.robot.game.AlgaeLevel;
-import frc.robot.game.ElevatedLevel;
 import frc.robot.game.CoralLevel;
+import frc.robot.game.ElevatedLevel;
 
 /**
  * Defines constants used only within the elevator subsystem. Note that the python code defined motion magic constants
@@ -76,12 +76,6 @@ class ElevatorConstants {
      * and we do not modify the target anymore to hold.
      */
     static final double ON_TARGET_TOLERANCE_MECH_ROTATIONS = 0.03; // About 0.5 inches either way.
-
-    /**
-     * Used to name any command instance that is used to move to and hold a scoring position. It is used to test for
-     * move to and hold being the currently commanded.
-     */
-    static final String MOVING_TO_AND_HOLDING_COMMAND_NAME = "Move to and hold position";
 
     /** Duty cycle for holding at zero (TODO consider small negative value). */
     static final double AT_ZERO_DUTY_CYCLE = 0.0;

@@ -54,10 +54,13 @@ public class Elevator extends SubsystemBase {
     /** Duty cycle control for return to 0.0 and nudges. */
     private final DutyCycleOut toZeroOrNudge = new DutyCycleOut(0.0);
 
-    /** Used to avoid creating a new one after every nudge. */
+    /** The standard move to and hold level command. */
+    private final Command moveToAndHoldCommand = this.startRun(
+            this::setCurrentTargetPosition,
+            this::gotoAndHoldCurrentTargetPositionRun);
+    /** The post nudge resume holding command. */
     private final Command holdPositionPostNudge = this.run(
-            this::gotoAndHoldCurrentTargetPositionRun)
-            .withName(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME);
+            this::gotoAndHoldCurrentTargetPositionRun);
 
     /**
      * Creates the elevator subsystem, configures the motors, and creates game piece state bindings.
@@ -93,20 +96,26 @@ public class Elevator extends SubsystemBase {
                 .or(CoralState.SCORE.getTrigger())
                 .or(CoralState.MAY_HAVE_ALGAE.getTrigger())
                 .or(CoralState.ELEVATOR_JAMMED.getTrigger())
-                .whileTrue(this.gotoAndHoldCurrentTargetPosition());
+                .whileTrue(this.moveToAndHoldCommand);
         /* Handle current elevated level changes. */
         ElevatedLevel.TRACKER.getChangeEvent().onChange(this::handleElevatedLevelChange);
     }
 
     /**
-     * If the current elevated level changes while we are moving to or holding a level (See
-     * {@link ElevatorConstants#MOVING_TO_AND_HOLDING_COMMAND_NAME}), this new next level is immediately applied and the
-     * elevator will move to it.
+     * If the current elevated level changes while we are moving to or holding a level, this new next level is
+     * immediately applied and the elevator will move to it.
      */
     private void handleElevatedLevelChange() {
-        if (this.getCurrentCommand().getName().equals(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME)) {
+        if (this.isMovingToAndHoldingLevel()) {
             this.setCurrentTargetPosition();
         }
+    }
+
+    /**
+     * @return true if one of the move to and hold level commands is running, and false otherwise.
+     */
+    private boolean isMovingToAndHoldingLevel() {
+        return this.moveToAndHoldCommand.isScheduled() || this.holdPositionPostNudge.isScheduled();
     }
 
     /**
@@ -141,18 +150,6 @@ public class Elevator extends SubsystemBase {
         if (this.currentTargetPosition > ElevatorConstants.PID_SLOT_POSITION_THRESHOLD) {
             this.currentTargetPositionPIDSlot = 1;
         }
-    }
-
-    /**
-     * Note that this version of the command sets the target based on the next target level.
-     * 
-     * @return the command to move and hold the elevator at a predetermined scoring level.
-     */
-    private Command gotoAndHoldCurrentTargetPosition() {
-        return this.startRun(
-                this::setCurrentTargetPosition,
-                this::gotoAndHoldCurrentTargetPositionRun)
-                .withName(ElevatorConstants.MOVING_TO_AND_HOLDING_COMMAND_NAME);
     }
 
     /** For method reference lambda expressions in commands that move and hold position. */

@@ -4,17 +4,28 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SimpleAutos;
 import frc.robot.game.AlgaeLevel;
 import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.algaemanipulator.AlgaeManipulator;
 import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.elevator.Elevator;
@@ -26,6 +37,24 @@ import frc.robot.subsystems.hopper.Hopper;
  * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+    // START From CTRE
+    // kSpeedAt12Volts desired top speed
+    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    // 3/4 of a rotation per second max angular velocity
+    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+
+    /* Setting up bindings for necessary control of the swerve drive platform */
+    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+
+    private final Telemetry logger = new Telemetry(MaxSpeed);
+
+    private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    // END from CTRE
+
     /** The hopper used to funnel coral to the coral cannon. */
     @SuppressWarnings("unused")
     private final Hopper coralHopper = new Hopper();
@@ -58,6 +87,64 @@ public class RobotContainer {
      * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
      */
     private void configureBindings() {
+        // START from CTRE
+        // Note that X is defined as forward according to WPILib convention,
+        // and Y is defined as to the left according to WPILib convention.
+        drivetrain.setDefaultCommand(
+                // Drivetrain will execute this command periodically
+                // Drive forward with negative Y (forward)
+                // Drive left with negative X (left)
+                // Drive counterclockwise with negative X (left)
+                drivetrain.applyRequest(() -> drive.withVelocityX(driverController.getLeftY() * MaxSpeed)
+                        .withVelocityY(driverController.getLeftX() * MaxSpeed)
+                        .withRotationalRate(-driverController.getRightX() * MaxAngularRate)));
+
+        // Idle while the robot is disabled. This ensures the configured
+        // neutral mode is applied to the drive motors while disabled.
+        final var idle = new SwerveRequest.Idle();
+        RobotModeTriggers.disabled().whileTrue(
+                drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+
+        // Commentted out for merge. Other things are on these.
+        // driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        // driverController.b().whileTrue(drivetrain.applyRequest(() ->
+        // point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))
+        // ));
+
+        // Run SysId routines when holding back/start and X/Y.
+        // Note that each routine should be run exactly once in a single log.
+        driverController.back().and(driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+
+        // reset the field-centric heading on left bumper press
+        driverController.back().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+        drivetrain.registerTelemetry(logger::telemeterize);
+
+        // Drive straight forward slowly
+        driverController.povUp().whileTrue(
+                drivetrain.applyRequest(() -> drive.withVelocityX(0.1 * MaxSpeed)
+                        .withVelocityY(0 * MaxSpeed)
+                        .withRotationalRate(0 * MaxAngularRate)));
+        // Drive straight backward slowly
+        driverController.povDown().whileTrue(
+                drivetrain.applyRequest(() -> drive.withVelocityX(-0.1 * MaxSpeed)
+                        .withVelocityY(0 * MaxSpeed)
+                        .withRotationalRate(0 * MaxAngularRate)));
+        // Drive straight right slowly
+        driverController.povRight().whileTrue(
+                drivetrain.applyRequest(() -> drive.withVelocityX(0 * MaxSpeed)
+                        .withVelocityY(-0.1 * MaxSpeed)
+                        .withRotationalRate(0 * MaxAngularRate)));
+        // Drive straight left slowly
+        driverController.povLeft().whileTrue(
+                drivetrain.applyRequest(() -> drive.withVelocityX(0 * MaxSpeed)
+                        .withVelocityY(0.1 * MaxSpeed)
+                        .withRotationalRate(0 * MaxAngularRate)));
+        // END from CTRE
+
         // Driver intake control bindings.
         // Intake button binding. Rumble only happens on normal (not interrupted by button release) completion.
         this.driverController.leftTrigger()
@@ -110,10 +197,10 @@ public class RobotContainer {
         this.driverController.y()
                 .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
 
-        // Both driver and operator binding for return to carry and elevator to zero.
+        // Both operator binding for return to carry and elevator to zero (was or'ed with driver pov down).
         // TODO consider going to EMPTY and when we get to zero, run intake for a moment to decide between
         // EMPTY/CARRY.
-        this.driverController.povDown().or(this.operatorController.povDown())
+        this.operatorController.povDown()
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
         // Operator target coral scoring level selection bindings.

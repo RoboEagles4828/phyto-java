@@ -24,7 +24,7 @@ public class RobotContainer {
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
-    private final SwerveRequest.RobotCentric drive = new SwerveRequest.RobotCentric()
+    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
@@ -75,6 +75,35 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        joystick.povUp().whileTrue(
+            drivetrain.applyRequest(() ->
+            drive.withVelocityX(0.1 * MaxSpeed) // Drive forward with negative Y (forward)
+                .withVelocityY(0 * MaxSpeed) // Drive left with negative X (left)
+                .withRotationalRate(0 * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            ) 
+        );
+        joystick.povDown().whileTrue(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(-0.1 * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(0 * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(0 * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            )
+        );
+        joystick.povRight().whileTrue(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(0 * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-0.1 * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(0 * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            )
+        );
+        joystick.povLeft().whileTrue(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(0 * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(0.1 * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(0 * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            )
+        );
     }
 
     public Command getAutonomousCommand() {

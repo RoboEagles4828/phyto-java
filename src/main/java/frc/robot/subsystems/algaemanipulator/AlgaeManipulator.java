@@ -7,7 +7,6 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -91,6 +90,28 @@ public class AlgaeManipulator extends SubsystemBase {
                 .startEnd(
                         () -> this.setPivotDutyCycle(AlgaeManipulatorConstants.RETRACT_ARM_DUTY_CYCLE),
                         this::stopPivot);
+    }
+
+    /**
+     * @return a command to manually run wheel for algae removal. Designed for whileTrue or with added terminating
+     *         condition.
+     */
+    public Command manualRemoveAlgaeFromReef() {
+        return this
+                .startEnd(
+                        () -> this.setWheelDutyCycle(AlgaeManipulatorConstants.INTAKE_DUTY_CYCLE),
+                        this::stopWheel);
+    }
+
+    /**
+     * @return a command to manually run wheel to score algae into the barge. Designed for whileTrue or with added
+     *         terminating condition.
+     */
+    public Command manualScoreAlgaeIntoBarge() {
+        return this
+                .startEnd(
+                        () -> this.setWheelDutyCycle(AlgaeManipulatorConstants.SCORE_BARGE_DUTY_CYCLE),
+                        this::stopWheel);
     }
 
     /**
@@ -228,9 +249,7 @@ public class AlgaeManipulator extends SubsystemBase {
      */
     private Command removeAlgaeFromReef() {
         return this
-                .startEnd(
-                        () -> this.setWheelDutyCycle(AlgaeManipulatorConstants.INTAKE_DUTY_CYCLE),
-                        this::stopWheel)
+                .manualRemoveAlgaeFromReef()
                 .until(() -> CoralState.getCurrentState() == CoralState.MAY_HAVE_ALGAE);
     }
 
@@ -249,9 +268,8 @@ public class AlgaeManipulator extends SubsystemBase {
      * @return a command to score algae in to the barge and then retract the arm.
      */
     private Command scoreAlgaeIntoBarge() {
-        return this.runOnce(() -> this.setWheelDutyCycle(AlgaeManipulatorConstants.SCORE_BARGE_DUTY_CYCLE))
-                .andThen(Commands.waitSeconds(AlgaeManipulatorConstants.SCORE_BARGE_DURATION_SEC))
-                .andThen(runOnce(this::stopWheel))
+        return this.manualScoreAlgaeIntoBarge()
+                .withTimeout(AlgaeManipulatorConstants.SCORE_BARGE_DURATION_SEC)
                 .andThen(this::retractArm);
     }
 

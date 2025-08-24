@@ -220,6 +220,9 @@ public class RobotContainer {
         // Operator bindings for manual algae manipulator arm movement.
         this.operatorController.povLeft().whileTrue(this.algaeManipulator.manualDeployArm());
         this.operatorController.povRight().whileTrue(this.algaeManipulator.manualRetractArm());
+        // Operator bindings for manual algae manipulator wheel movement.
+        this.operatorController.leftBumper().whileTrue(this.algaeManipulator.manualRemoveAlgaeFromReef());
+        this.operatorController.rightBumper().whileTrue(this.algaeManipulator.manualScoreAlgaeIntoBarge());
     }
 
     /**

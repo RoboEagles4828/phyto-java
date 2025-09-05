@@ -28,7 +28,7 @@ public class AlgaeManipulatorConstants {
     /** Percent power while retracting the arm. */
     final static double RETRACT_ARM_DUTY_CYCLE = -0.2; // TODO verify sign and magnitude
 
-    final static double INTAKE_DUTY_CYCLE = 0.6; // TODO verify sign and magnitude
-    final static double SCORE_BARGE_DUTY_CYCLE = -0.6; // TODO verify sign and magnitude
+    final static double INTAKE_DUTY_CYCLE = -0.6; // TODO verify sign and magnitude
+    final static double SCORE_BARGE_DUTY_CYCLE = 0.6; // TODO verify sign and magnitude
     final static double SCORE_BARGE_DURATION_SEC = 1.75;
 }

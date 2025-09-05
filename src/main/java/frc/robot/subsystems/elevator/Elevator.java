@@ -12,6 +12,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -249,5 +250,10 @@ public class Elevator extends SubsystemBase {
     private void nudgeEndResumeHold() {
         this.setCurrentTargetPosition(this.rightMotorLeader.getPosition().getValueAsDouble());
         this.holdPositionPostNudge.schedule(); // TODO check that this works. It use to have issues from end.
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putBoolean("Elevator / IsMovingAndHolding", this.isMovingToAndHoldingLevel());
     }
 }

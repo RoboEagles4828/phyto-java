@@ -184,10 +184,7 @@ public class RobotContainer {
         this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
         // For removing algae from the reef, we want to behave like whileTrue and go to the may have algae state. The
         // driver can observe if algae is actually present and decide what to do next.
-        this.driverController.leftBumper().negate()
-                .and(ElevatedLevel.TRACKER.getIsCurrentAlgaeLevelTrigger())
-                .and(() -> this.algaeManipulator.isDealgae())
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE)));
+        this.driverController.leftBumper().onFalse(Commands.runOnce(this::testForAndSetMayHaveAlgae));
 
         // Driver controller algae scoring level selection bindings.
         this.driverController.a()
@@ -233,6 +230,16 @@ public class RobotContainer {
     private void endIntakeProcessing() {
         if (CoralState.INTAKE.isCurrent()) {
             CoralState.setCurrentState(CoralState.EMPTY);
+        }
+    }
+
+    /**
+     * Checks to see if the current task is to dealgae the reef. If so, the current state is set to
+     * {@link CoralState#MAY_HAVE_ALGAE}. This is designed to only be called on release of the score button binding.
+     */
+    private void testForAndSetMayHaveAlgae() {
+        if (ElevatedLevel.TRACKER.isCurrentAlgaeLevel() && this.algaeManipulator.isDealgae()) {
+            CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE);
         }
     }
 

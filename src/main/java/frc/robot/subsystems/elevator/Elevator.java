@@ -248,6 +248,7 @@ public class Elevator extends SubsystemBase {
      * target and resumes holding at that position.
      */
     private void nudgeEndResumeHold() {
+        // TODO only do these bits if coral state is a holdable state
         this.setCurrentTargetPosition(this.rightMotorLeader.getPosition().getValueAsDouble());
         this.holdPositionPostNudge.schedule(); // TODO check that this works. It use to have issues from end.
     }
@@ -255,5 +256,7 @@ public class Elevator extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putBoolean("Elevator / IsMovingAndHolding", this.isMovingToAndHoldingLevel());
+        SmartDashboard.putNumber("Elevator / Position", this.getPosition());
+        SmartDashboard.putBoolean("Elevator / On Target", this.onTarget());
     }
 }

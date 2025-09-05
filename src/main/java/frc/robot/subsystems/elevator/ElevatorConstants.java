@@ -80,7 +80,7 @@ class ElevatorConstants {
     /** Duty cycle for holding at zero (TODO consider small negative value). */
     static final double AT_ZERO_DUTY_CYCLE = 0.0;
     /** Duty cycle for movement to zero. */
-    static final double MOVE_TO_ZERO_DUTY_CYCLE = -0.25; // TODO this was -0.7 in old code but that seemed fast.
+    static final double MOVE_TO_ZERO_DUTY_CYCLE = -0.4; // TODO this was -0.7 in old code but that seemed fast.
     /** Duty cycle for nudges up. */
     static final double NUDGE_UP_DUTY_CYCLE = 0.3;
     /** Duty cycle for nudges down. */

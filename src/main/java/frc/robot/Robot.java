@@ -77,6 +77,8 @@ public class Robot extends TimedRobot {
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
+        // TODO look into calling seedFieldCentric on the drive at auto start.
+        // Consider red/blue (may not matter with CTRE and autopilot) and maybe selected auto.
         // Enabled into autonomous or practice match.
         this.enabledDirectToTeleOp = false;
         // Autonomous always starts with coral loaded. Setting here to cover repeated testing cases.

@@ -4,8 +4,11 @@
 
 package frc.robot.commands;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /**
  * Factory methods for simple autos that do not use path following.
@@ -19,6 +22,17 @@ public final class SimpleAutos {
      */
     public static Command doNothing() {
         return Commands.print("Do nothing auto.");
+    }
+
+    /**
+     * @param drivetrain
+     * @param drive
+     * @return a command that moves the robot at velocity 1 m/s backward for 3 seconds
+     */
+    public static Command move(CommandSwerveDrivetrain drivetrain, SwerveRequest.FieldCentric drive) {
+        return drivetrain.applyRequest(() -> drive.withVelocityX(-1)
+                                                .withVelocityY(0)
+                                                .withRotationalRate(0)).withTimeout(3);
     }
 
     private SimpleAutos() {

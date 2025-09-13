@@ -27,10 +27,10 @@ class ElevatorConstants {
             CoralLevel.L1, 1.105,
             CoralLevel.L2, 1.9,
             CoralLevel.L3, 2.84,
-            CoralLevel.L4, 4.102,
+            CoralLevel.L4, 3.9,
             AlgaeLevel.DEALGAE_LOW, 2.0,
             AlgaeLevel.DEALGAE_HIGH, 3.0,
-            AlgaeLevel.SCORE_BARGE, 4.102);
+            AlgaeLevel.SCORE_BARGE, 3.9);
 
     /** PID slot 0 is usually used. Use slot 1 to go above this threshold. */
     static final double PID_SLOT_POSITION_THRESHOLD = 3.5;
@@ -46,7 +46,7 @@ class ElevatorConstants {
         static final double STATIC = 0.0;
         static final double VELOCITY = 0.0;
         static final double ACCELERATION = 0.0;
-        static final double INTEGRAL = 0.0;
+        static final double INTEGRAL = 1.25;
         static final double DERIVATIVE = 0.0;
         /** kP for L4 in slot 1. */
         static final double PROPORTIONAL_L4 = 7.5;
@@ -88,4 +88,6 @@ class ElevatorConstants {
 
     /** Time to debounce elevator bottom detection for encoder zeroing. */
     static final double BOTTOM_DETECTION_DEBOUNCE_SEC = 0.1;
+
+    static final double BOTTOM_LIMIT_COMPARISON = 0.1;
 }

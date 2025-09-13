@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DIOIds;
@@ -180,7 +181,7 @@ public class Elevator extends SubsystemBase {
      */
     private boolean isAtBottom() {
         final boolean atBottom = this.zeroingDebounce.calculate(this.bottomLimitSwitch.get());
-        if (atBottom) {
+        if (atBottom && Math.abs(this.getPosition()) < ElevatorConstants.BOTTOM_LIMIT_COMPARISON) {
             this.rightMotorLeader.setPosition(0.0);
             this.elevatorPositionEncoder.reset();
         }
@@ -240,7 +241,7 @@ public class Elevator extends SubsystemBase {
     private void nudgeDownRun() {
         this.rightMotorLeader.setControl(
                 this.toZeroOrNudge.withOutput(ElevatorConstants.NUDGE_DOWN_DUTY_CYCLE)
-                        .withLimitForwardMotion(this.bottomLimitSwitch.get()));
+                        .withLimitReverseMotion(this.bottomLimitSwitch.get()));
     }
 
     /**
@@ -253,10 +254,21 @@ public class Elevator extends SubsystemBase {
         this.holdPositionPostNudge.schedule(); // TODO check that this works. It use to have issues from end.
     }
 
+    /*
+     * Command to manually zero the elevator encoder
+     */
+    public Command resetElevatorEncoder(){
+        return Commands.runOnce(() -> this.rightMotorLeader.setPosition(0.0)).andThen(Commands.runOnce(() -> this.elevatorPositionEncoder.reset()));
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putBoolean("Elevator / IsMovingAndHolding", this.isMovingToAndHoldingLevel());
         SmartDashboard.putNumber("Elevator / Position", this.getPosition());
         SmartDashboard.putBoolean("Elevator / On Target", this.onTarget());
+        SmartDashboard.putNumber("Elevator Motor Voltage", rightMotorLeader.getMotorVoltage().getValueAsDouble());
+        SmartDashboard.putBoolean("Elevator Bottom Limit Switch", bottomLimitSwitch.get());
+        SmartDashboard.putBoolean("Elevator Top Limit Switch", !topLimitSwitch.get());
+        this.isAtBottom();
     }
 }

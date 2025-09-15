@@ -1,6 +1,7 @@
 package frc.robot.subsystems.swerve;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
@@ -13,6 +14,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -21,8 +23,8 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -40,6 +42,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+
+    /** The arbiter of the current autopilot target. */
+    private final AlignmentController alignmentController = new AlignmentController(this);
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -284,5 +289,50 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+    }
+
+        /**
+     * @return the most recent robot centric {@link ChassisSpeeds} from the odometry
+     *         background thread.
+     */
+    ChassisSpeeds getRobotRelativeSpeeds() {
+        return getState().Speeds;
+    }
+
+    /**
+     * @return the most recent {@link Pose2d} from the odometry background thread.
+     */
+    Pose2d getCurrentPose() {
+        return getState().Pose;
+    }
+
+    /**
+     * @return the {@link AlignmentController} for this swerve drive train.
+     */
+    public AlignmentController getAlignmentController() {
+        return this.alignmentController;
+    }
+
+    /**
+     * Stops the motion of the swerve drive train.
+     */
+    Runnable stop() {
+        return () -> this.setControl(new SwerveRequest.RobotCentric());
+    }
+
+    /**
+     * @return false while autopilot is driving and true otherwise.
+     */
+    public Trigger getReadyToScoreTrigger() {
+        return new Trigger(this::evaluateReadyToScore);
+    }
+
+    /**
+     * Implementation convenience method for {@link #getReadyToScoreTrigger()}.
+     * 
+     * @return false if the autopilot alignment command is running.
+     */
+    private boolean evaluateReadyToScore() {
+        return !this.alignmentController.isAligning();
     }
 }

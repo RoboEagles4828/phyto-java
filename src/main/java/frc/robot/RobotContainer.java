@@ -168,9 +168,9 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
 
         // Subsystem derived prepare to score to ready to score bindings.
-        // TODO when have drive train, add it to this compound trigger.
         final Trigger robotReadyToScoreTrigger = this.elevator.getReadyToScoreTrigger()
-                .and(this.algaeManipulator.getReadyToScoreTrigger());
+                .and(this.algaeManipulator.getReadyToScoreTrigger())
+                .and(this.drivetrain.getReadyToScoreTrigger());
         // If preparing to score and subsystems are ready, we are now ready to score.
         CoralState.PREPARE_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger)
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));

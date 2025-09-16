@@ -100,13 +100,13 @@ public class Cannon extends SubsystemBase {
         return this
                 .startEnd(
                         this::setScoreSpeeds,
-                        () -> CoralState.setCurrentState(CoralState.EMPTY))
-                .withDeadline(this.stopScoring());
+                        () -> CoralState.setCurrentState(CoralState.EMPTY));
     }
 
     /**
      * Returns a command that ends when it is appropriate to end the scoring action. Right now it is a time out but
      * could easily be changed to a beam break or other.
+     * TODO consider putting this until condition back into score but only for automode.
      */
     private Command stopScoring() {
         return new WaitCommand(1.0);

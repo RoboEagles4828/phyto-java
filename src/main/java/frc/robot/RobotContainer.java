@@ -178,13 +178,12 @@ public class RobotContainer {
         CoralState.READY_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger.negate())
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
 
-        // Driver score (coral or algae) bindings.
+        // Driver score (coral or algae) binding.
         // Note that the driver should treat the left bumper like a while held in all cases.
-        // On press, change to score state. For coral, it will change to empty on its own.
-        this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
-        // For removing algae from the reef, we want to behave like whileTrue and go to the may have algae state. The
-        // driver can observe if algae is actually present and decide what to do next.
-        this.driverController.leftBumper().onFalse(Commands.runOnce(this::testForAndSetMayHaveAlgae));
+        this.driverController.leftBumper().whileTrue(
+                Commands.startEnd(
+                        () -> CoralState.setCurrentState(CoralState.SCORE),
+                        this::setPostScoreState));
 
         // Driver controller algae scoring level selection bindings.
         this.driverController.a()
@@ -236,11 +235,14 @@ public class RobotContainer {
 
     /**
      * Checks to see if the current task is to dealgae the reef. If so, the current state is set to
-     * {@link CoralState#MAY_HAVE_ALGAE}. This is designed to only be called on release of the score button binding.
+     * {@link CoralState#MAY_HAVE_ALGAE}, otherwise it is set empty. This is designed to only be called on release of
+     * the score button binding.
      */
-    private void testForAndSetMayHaveAlgae() {
+    private void setPostScoreState() {
         if (ElevatedLevel.TRACKER.isCurrentAlgaeLevel() && this.algaeManipulator.isDealgae()) {
             CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE);
+        } else {
+            CoralState.setCurrentState(CoralState.EMPTY);
         }
     }
 

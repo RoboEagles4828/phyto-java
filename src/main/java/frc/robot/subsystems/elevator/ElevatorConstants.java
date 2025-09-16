@@ -24,13 +24,13 @@ class ElevatorConstants {
      * does not support null keys nor values.
      */
     static final Map<ElevatedLevel, Double> LEVEL_TO_POSITION = Map.of(
-            CoralLevel.L1, 1.105,
-            CoralLevel.L2, 1.9,
-            CoralLevel.L3, 2.84,
-            CoralLevel.L4, 3.9,
-            AlgaeLevel.DEALGAE_LOW, 2.0,
-            AlgaeLevel.DEALGAE_HIGH, 3.0,
-            AlgaeLevel.SCORE_BARGE, 3.9);
+            CoralLevel.L1, 1.1,
+            CoralLevel.L2, 1.70,
+            CoralLevel.L3, 2.5,
+            CoralLevel.L4, 3.8,
+            AlgaeLevel.DEALGAE_LOW, 1.8,
+            AlgaeLevel.DEALGAE_HIGH, 2.8,
+            AlgaeLevel.SCORE_BARGE, 3.8);
 
     /** PID slot 0 is usually used. Use slot 1 to go above this threshold. */
     static final double PID_SLOT_POSITION_THRESHOLD = 3.5;
@@ -89,5 +89,5 @@ class ElevatorConstants {
     /** Time to debounce elevator bottom detection for encoder zeroing. */
     static final double BOTTOM_DETECTION_DEBOUNCE_SEC = 0.1;
 
-    static final double BOTTOM_LIMIT_COMPARISON = 0.1;
+    static final double BOTTOM_LIMIT_COMPARISON = 0.2;
 }

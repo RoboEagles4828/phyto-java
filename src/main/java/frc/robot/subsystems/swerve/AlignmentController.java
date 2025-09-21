@@ -19,7 +19,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.game.AlgaeLevel;
 import frc.robot.game.CoralState;
+import frc.robot.game.ElevatedLevel;
 import frc.robot.game.ElevatedLevelTracker;
 
 /**
@@ -147,11 +149,16 @@ public class AlignmentController {
             final Pose2d currentPose = this.swerve.getCurrentPose();
             Pose2d targetPose = currentPose; // Stay put if we can not calculate target
 
-            // TODO if carry and target level is coral calculate target based on position on the field.
             final int reefFaceTagZone = getReefFaceTagZone(currentPose.getTranslation().getMeasureX());
-            // TODO if target level is dealgae calculate target based on position on the field.
-            // TODO if target level is score barge and in zone 1 and left of center
-            // TODO if empty and in zone 0, closest loading station
+            if (ElevatedLevel.TRACKER.isCurrentCoralLevel()) {
+                // TODO if target level is coral calculate target based on position on the field.
+            } else if (ElevatedLevel.TRACKER.isCurrentAlgaeLevel()
+                    && (ElevatedLevel.TRACKER.getCurrentLevel() != AlgaeLevel.SCORE_BARGE)) {
+                // TODO if target level is dealgae calculate target based on position on the field.
+            } else if ((ElevatedLevel.TRACKER.getCurrentLevel() == AlgaeLevel.SCORE_BARGE)
+                    && (this.isInFrontOfOurBarge(reefFaceTagZone, currentPose.getTranslation().getMeasureY()))) {
+                // TODO if target level is score barge and in front of our barge
+            }
 
             setTarget(new APTarget(targetPose));
         }
@@ -211,6 +218,11 @@ public class AlignmentController {
             return 2;
         }
         return 3;
+    }
+
+    private boolean isInFrontOfOurBarge(final int reefFaceTagZone, final Distance y) {
+        // TODO implement based on alliance.
+        return false;
     }
 
     /**

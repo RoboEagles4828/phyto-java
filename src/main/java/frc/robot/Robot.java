@@ -53,8 +53,26 @@ public class Robot extends TimedRobot {
      * This runs after the mode specific periodic functions, but before LiveWindow and SmartDashboard integrated
      * updating.
      */
+    int frame = 0;
     @Override
     public void robotPeriodic() {
+        // Basic targeting data
+        LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
+        double tx = LimelightHelpers.getTX(""); // Horizontal Offset From Crosshair To Target
+        double ty = LimelightHelpers.getTY(""); // Vertical Offset From Crosshair To Target
+        double ta = LimelightHelpers.getTA(""); // Target Area (0% of image to 100% of image)
+        double tid = LimelightHelpers.getFddicialId(""); // Fiducial ID of AprilTag
+        boolean hasTarget = LimelightHelpers.getTV(""); // Do you have target?
+
+        SmartDashboard.putNumber("Limelight X", tx);
+        SmartDashboard.putNumber("Limelight Y", ty);
+        SmartDashboard.putNumber("Limelight Area", ta);
+        SmartDashboard.putNumber("Limelight Fiducial ID", tid);
+        SmartDashboard.putBoolean("Limelight Has Target", hasTarget);
+        SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
+        SmartDashboard.putNumber("Limelight timestamp", mt1.timestampSeconds);
+        SmartDashboard.putNumber("frame", frame++)
+
         // Runs the Scheduler. This is responsible for polling buttons, adding newly-scheduled
         // commands, running already-scheduled commands, removing finished or interrupted commands,
         // and running subsystem periodic() methods. This must be called from the robot's periodic
@@ -63,6 +81,8 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putString("Coral State", CoralState.getCurrentState().toString());
         SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());
+        robotContainer.displayPoseEstimate();
+
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

@@ -56,23 +56,6 @@ public class Robot extends TimedRobot {
     int frame = 0;
     @Override
     public void robotPeriodic() {
-        // Basic targeting data
-        LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
-        double tx = LimelightHelpers.getTX(""); // Horizontal Offset From Crosshair To Target
-        double ty = LimelightHelpers.getTY(""); // Vertical Offset From Crosshair To Target
-        double ta = LimelightHelpers.getTA(""); // Target Area (0% of image to 100% of image)
-        double tid = LimelightHelpers.getFddicialId(""); // Fiducial ID of AprilTag
-        boolean hasTarget = LimelightHelpers.getTV(""); // Do you have target?
-
-        SmartDashboard.putNumber("Limelight X", tx);
-        SmartDashboard.putNumber("Limelight Y", ty);
-        SmartDashboard.putNumber("Limelight Area", ta);
-        SmartDashboard.putNumber("Limelight Fiducial ID", tid);
-        SmartDashboard.putBoolean("Limelight Has Target", hasTarget);
-        SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
-        SmartDashboard.putNumber("Limelight timestamp", mt1.timestampSeconds);
-        SmartDashboard.putNumber("frame", frame++)
-
         // Runs the Scheduler. This is responsible for polling buttons, adding newly-scheduled
         // commands, running already-scheduled commands, removing finished or interrupted commands,
         // and running subsystem periodic() methods. This must be called from the robot's periodic
@@ -81,8 +64,40 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putString("Coral State", CoralState.getCurrentState().toString());
         SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());
+        
+        // Print limelight output
+        LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
+        SmartDashboard.putNumber("Limelight Fiducial ID", LimelightHelpers.getFiducialID(""));
+        SmartDashboard.putBoolean("Limelight Has Target", LimelightHelpers.getTV(""));
+        SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
+        SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
+
+        // Print the drivetrain's pose estimate 
         robotContainer.displayPoseEstimate();
 
+        // Perform filtering on camera reading
+        boolean acceptLimelightUpdate = true;
+
+        // If we see more than one tag, reject
+        if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
+            acceptLimelightUpdate = false;
+        } else {
+            // If ambiguity is too high, reject
+            if (mt1.rawFiducials[0].ambiguity > .7) {
+                acceptLimelightUpdate = false;
+            }
+            // If we're too far from the tag, reject
+            if (mt1.rawFiducials[0].distToCamera > 3) {
+                acceptLimelightUpdate = false;
+            }
+        }
+
+        if (acceptLimelightUpdate) {
+            //todo(ben): commented out for now, until we can test this better
+            //robotContainer.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
+        }
+
+        SmartDashboard.putBoolean("Limelight Update Accepted", acceptLimelightUpdate);
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

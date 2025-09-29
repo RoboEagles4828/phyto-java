@@ -11,7 +11,9 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -168,9 +170,9 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
 
         // Subsystem derived prepare to score to ready to score bindings.
+        // TODO when have drive train, add it to this compound trigger.
         final Trigger robotReadyToScoreTrigger = this.elevator.getReadyToScoreTrigger()
-                .and(this.algaeManipulator.getReadyToScoreTrigger())
-                .and(this.drivetrain.getReadyToScoreTrigger());
+                .and(this.algaeManipulator.getReadyToScoreTrigger());
         // If preparing to score and subsystems are ready, we are now ready to score.
         CoralState.PREPARE_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger)
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
@@ -178,12 +180,13 @@ public class RobotContainer {
         CoralState.READY_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger.negate())
                 .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
 
-        // Driver score (coral or algae) binding.
+        // Driver score (coral or algae) bindings.
         // Note that the driver should treat the left bumper like a while held in all cases.
-        this.driverController.leftBumper().whileTrue(
-                Commands.startEnd(
-                        () -> CoralState.setCurrentState(CoralState.SCORE),
-                        this::setPostScoreState));
+        // On press, change to score state. For coral, it will change to empty on its own.
+        this.driverController.leftBumper().onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
+        // For removing algae from the reef, we want to behave like whileTrue and go to the may have algae state. The
+        // driver can observe if algae is actually present and decide what to do next.
+        this.driverController.leftBumper().onFalse(Commands.runOnce(this::testForAndSetMayHaveAlgae));
 
         // Driver controller algae scoring level selection bindings.
         this.driverController.a()
@@ -235,19 +238,17 @@ public class RobotContainer {
 
     /**
      * Checks to see if the current task is to dealgae the reef. If so, the current state is set to
-     * {@link CoralState#MAY_HAVE_ALGAE}, otherwise it is set empty. This is designed to only be called on release of
-     * the score button binding.
+     * {@link CoralState#MAY_HAVE_ALGAE}. This is designed to only be called on release of the score button binding.
      */
-    private void setPostScoreState() {
+    private void testForAndSetMayHaveAlgae() {
         if (ElevatedLevel.TRACKER.isCurrentAlgaeLevel() && this.algaeManipulator.isDealgae()) {
             CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE);
-        } else {
-            CoralState.setCurrentState(CoralState.EMPTY);
         }
     }
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
+     *
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
@@ -255,6 +256,10 @@ public class RobotContainer {
     }
 
     public void displayPoseEstimate() {
-        SmartDashboard.putString("Drivetrain Pose Estimate", drivetrain.getState().getPose.toString());
+        SmartDashboard.putString("Drivetrain Pose Estimate: ", drivetrain.getState().Pose.toString()); 
+    }
+
+    public void addVisionMeasurement(Pose2d cameraPose, double timestamp) {
+        drivetrain.addVisionMeasurement(cameraPose, timestamp);
     }
 }

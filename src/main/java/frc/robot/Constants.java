@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This
  * class should not be used for any other purpose. All constants should be declared globally (i.e. public static final).
@@ -48,5 +51,11 @@ public final class Constants {
         public static final int ELEVATOR_TOP_LIMIT_DIO = 0;
         public static final int ELEVATOR_QUAD_ENCODER_A_CHANNEL = 1;
         public static final int ELEVATOR_QUAD_ENCODER_B_CHANNEL = 2;
+    }
+
+    public static class AutoAlignConstants {
+        public static final String LIMELIGHT_NAME = "limelight-";
+        public static final AprilTagFields APRIL_TAG_FIELD_TYPE = AprilTagFields.k2025ReefscapeAndyMark;
+        
     }
 }

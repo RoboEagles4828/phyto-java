@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.AutoAlignConstants;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
 
@@ -64,6 +65,9 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putString("Coral State", CoralState.getCurrentState().toString());
         SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());
+
+        SmartDashboard.putNumber("Current Tag Reading", LimelightHelpers.getFiducialID(AutoAlignConstants.LIMELIGHT_NAME));
+        
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

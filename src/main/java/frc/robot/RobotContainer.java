@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -11,30 +12,36 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+// import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.NetworkButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.SimpleAutos;
-import frc.robot.game.AlgaeLevel;
-import frc.robot.game.CoralLevel;
-import frc.robot.game.CoralState;
-import frc.robot.game.ElevatedLevel;
-import frc.robot.generated.TunerConstants;
+import frc.robot.game.*;
 import frc.robot.subsystems.algaemanipulator.AlgaeManipulator;
 import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
+import frc.robot.subsystems.swerve.TunerConstants;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -42,223 +49,289 @@ import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
  * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    // START From CTRE
-    // kSpeedAt12Volts desired top speed
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
-    // 3/4 of a rotation per second max angular velocity
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+	/* ========== */
+	/* SUBSYSTEMS */
+	/* ========== */
 
-    /* Setting up bindings for necessary control of the swerve drive platform */
-    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+	/** The CTRE swerve drivetrain used to move the chassis. */
+	private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+	/** The hopper used to funnel coral to the coral cannon. */
+	@SuppressWarnings("unused")
+	private final Hopper coralHopper = new Hopper();
 
-    private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    // END from CTRE
+	/** The coral cannon used for intake and scoring. */
+	@SuppressWarnings("unused")
+	private final Cannon coralCannon = new Cannon();
 
-    /** The hopper used to funnel coral to the coral cannon. */
-    @SuppressWarnings("unused")
-    private final Hopper coralHopper = new Hopper();
-    /** The coral cannon used for intake and scoring. */
-    @SuppressWarnings("unused")
-    private final Cannon coralCannon = new Cannon();
-    /** The algae manipulator is used to remove algae from the reef and score them in the barge. */
-    private final AlgaeManipulator algaeManipulator = new AlgaeManipulator();
-    /** The elevator is used to move game piece manipulators between levels. */
-    private final Elevator elevator = new Elevator();
+	/** The algae manipulator is used to remove algae from the reef and score them in the barge. */
+	private final AlgaeManipulator algaeManipulator = new AlgaeManipulator();
 
-    /** Controller used primarily for driving the robot around the field. */
-    private final CommandXboxController driverController = new CommandXboxController(
-            OperatorConstants.DRIVER_CONTROLLER_PORT);
-    /** Controller used primarily for operator game piece manipulation. */
-    private final CommandXboxController operatorController = new CommandXboxController(
-            OperatorConstants.OPERATOR_CONTROLLER_PORT);
+	/** The elevator is used to move game piece manipulators between levels. */
+	private final Elevator elevator = new Elevator();
+	
 
-    /** The container for the robot. Contains subsystems, OI devices, and commands. */
-    public RobotContainer() {
-        // Configure the trigger bindings
-        configureBindings();
-    }
+	/* ======================= */
+	/* CTRE SWERVE NECESSITIES */
+	/* ======================= */
+	
+	// TODO these constants should be in swerve constants folder, not in RobotContainer
+	// kSpeedAt12Volts desired top speed in m/s
+	private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);	
+	// 3/4 of a rotation per second max angular velocity in rad/s (=42.97183 deg/s)
+	private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+	// max speed for manual alignment
+	private double MaxAlignmentSpeed = (MetersPerSecond.of(1)).in(MetersPerSecond);
 
-    /**
-     * Use this method to define your trigger->command mappings. Triggers can be created via the
-     * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
-     * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
-     * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
-     * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
-     */
-    private void configureBindings() {
-        // START from CTRE
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
-                // Drivetrain will execute this command periodically
-                // Drive forward with negative Y (forward)
-                // Drive left with negative X (left)
-                // Drive counterclockwise with negative X (left)
-                drivetrain.applyRequest(() -> drive.withVelocityX(driverController.getLeftY() * MaxSpeed)
-                        .withVelocityY(driverController.getLeftX() * MaxSpeed)
-                        .withRotationalRate(-driverController.getRightX() * MaxAngularRate)));
+	// Setting up bindings for necessary control of the swerve drive platform
+	private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+		.withDeadband(MaxSpeed * 0.1) // Add a 10% deadband
+		.withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+	private final SwerveRequest.RobotCentric driveRR = new SwerveRequest.RobotCentric()
+		.withDeadband(MaxAlignmentSpeed * 0.1) // Add a 10% deadband
+		.withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+	private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
-        // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
-        final var idle = new SwerveRequest.Idle();
-        RobotModeTriggers.disabled().whileTrue(
-                drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+	/** Logs swerve data through SignalLogger for sysID  */
+	private final Telemetry logger = new Telemetry(MaxSpeed);
 
-        // Commentted out for merge. Other things are on these.
-        // driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        // driverController.b().whileTrue(drivetrain.applyRequest(() ->
-        // point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))
-        // ));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        driverController.back().and(driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+	/* =========== */
+	/* CONTROLLERS */
+	/* =========== */
+			
+	/** Controller used primarily for driving the robot around the field. */
+	private final CommandXboxController driverController = new CommandXboxController(
+			OperatorConstants.DRIVER_CONTROLLER_PORT);
 
-        // reset the field-centric heading on left bumper press
-        driverController.back().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+	/** Controller used primarily for operator game piece manipulation. */
+	private final CommandXboxController operatorController = new CommandXboxController(
+			OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
-        drivetrain.registerTelemetry(logger::telemeterize);
+	
+	/* ========== */
+	/* AUTONOMOUS */
+	/* ========== */
 
-        // Drive straight forward slowly
-        driverController.povUp().whileTrue(
-                drivetrain.applyRequest(() -> drive.withVelocityX(0.1 * MaxSpeed)
-                        .withVelocityY(0 * MaxSpeed)
-                        .withRotationalRate(0 * MaxAngularRate)));
-        // Drive straight backward slowly
-        driverController.povDown().whileTrue(
-                drivetrain.applyRequest(() -> drive.withVelocityX(-0.1 * MaxSpeed)
-                        .withVelocityY(0 * MaxSpeed)
-                        .withRotationalRate(0 * MaxAngularRate)));
-        // Drive straight right slowly
-        driverController.povRight().whileTrue(
-                drivetrain.applyRequest(() -> drive.withVelocityX(0 * MaxSpeed)
-                        .withVelocityY(-0.1 * MaxSpeed)
-                        .withRotationalRate(0 * MaxAngularRate)));
-        // Drive straight left slowly
-        driverController.povLeft().whileTrue(
-                drivetrain.applyRequest(() -> drive.withVelocityX(0 * MaxSpeed)
-                        .withVelocityY(0.1 * MaxSpeed)
-                        .withRotationalRate(0 * MaxAngularRate)));
-        // END from CTRE
+	/** Autochooser to select auton through SmartDashboard.
+	 *  Can specify default autonomous command or leave blank for Commands.none()
+	*/
+	// private final SendableChooser<Command> autoChooser = AutoBuilder.buildAutoChooser();
 
-        // Driver intake control bindings.
-        // Intake button binding. Rumble only happens on normal (not interrupted by button release) completion.
-        this.driverController.leftTrigger()
-                .whileTrue(Commands.startEnd(
-                        () -> CoralState.setCurrentState(CoralState.INTAKE),
-                        this::endIntakeProcessing)
-                        .andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
-                                .andThen(Commands.waitSeconds(0.5))
-                                .andThen(Commands
-                                        .runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0)))));
+	// TODO register named commands/construct a class to do this to keep this class clean
+	// NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
 
-        // Driver coral jammed in hopper agitation bindings.
-        // On press, change to the hopper jammed state. On release, change to empty to be ready to intake again.
-        this.driverController.rightBumper()
-                .whileTrue(Commands.startEnd(
-                        () -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
-                        () -> CoralState.setCurrentState(CoralState.EMPTY)));
+	/** The container for the robot. Contains subsystems, OI devices, and commands. */
+	public RobotContainer() {
 
-        // Driver prepare to score binding.
-        this.driverController.rightTrigger()
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+		// Configure the trigger bindings
+		configureBindings();
 
-        // Subsystem derived prepare to score to ready to score bindings.
-        // TODO when have drive train, add it to this compound trigger.
-        final Trigger robotReadyToScoreTrigger = this.elevator.getReadyToScoreTrigger()
-                .and(this.algaeManipulator.getReadyToScoreTrigger());
-        // If preparing to score and subsystems are ready, we are now ready to score.
-        CoralState.PREPARE_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger)
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
-        // If ready to score and a subsystem is no longer ready, we are back to preparing to score.
-        CoralState.READY_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger.negate())
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+		// Puts the chooser on SmartDashboard
+		// SmartDashboard.putData("Auto Chooser", autoChooser);
+	}
 
-        // Driver score (coral or algae) binding.
-        // Note that the driver should treat the left bumper like a while held in all cases.
-        this.driverController.leftBumper().whileTrue(
-                Commands.startEnd(
-                        () -> CoralState.setCurrentState(CoralState.SCORE),
-                        this::setPostScoreState));
+	/**
+	 * Use this method to define your trigger->command mappings. Triggers can be created via the
+	 * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
+	 * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
+	 * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
+	 * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
+	 */
+	private void configureBindings() {
+		// Note that according to WPILib convention,
+		// X is defined as forward
+		// Y is defined as to the left
+		drivetrain.setDefaultCommand(
+			// Drivetrain will execute this command periodically
+			// Drive forward with negative Y (left joystick forward)
+			// Drive left with negative X (left joystick left)
+			// Drive counterclockwise with negative X (right joystick left)
+				
+			drivetrain.applyRequest(() -> drive
+				.withVelocityX(-driverController.getLeftY() * MaxSpeed)
+				.withVelocityY(-driverController.getLeftX() * MaxSpeed)
+				.withRotationalRate(-driverController.getRightX() * MaxAngularRate)
+			)
+		);
 
-        // Driver controller algae scoring level selection bindings.
-        this.driverController.a()
-                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_LOW)));
-        this.driverController.b()
-                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_HIGH)));
-        this.driverController.y()
-                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
+		// Idle while the robot is disabled. This ensures the configured
+		// neutral mode is applied to the drive motors while disabled.
+		final var idle = new SwerveRequest.Idle();
+		RobotModeTriggers.disabled().whileTrue(
+			drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-        // Both operator binding for return to carry and elevator to zero (was or'ed with driver pov down).
-        // TODO consider going to EMPTY and when we get to zero, run intake for a moment to decide between
-        // EMPTY/CARRY.
-        this.operatorController.povDown()
-                .onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
+		/* Commented out for merge as there are other methods binded to these buttons.
+		driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
+		driverController.b().whileTrue(drivetrain.applyRequest(() ->
+			point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), driverController.getLeftX()))));
+		*/
 
-        // Operator target coral scoring level selection bindings.
-        this.operatorController.a()
-                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1)));
-        this.operatorController.x()
-                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2)));
-        this.operatorController.b()
-                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3)));
-        this.operatorController.y()
-                .onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4)));
+		// Run SysId routines when holding back/start and X/Y.
+		// Note that each routine should be run exactly once in a single log.
+		driverController.back().and(driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+		driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+		driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+		driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-        // Operator bindings for elevator nudges.
-        this.operatorController.rightTrigger().whileTrue(this.elevator.nudgeUpCommand());
-        this.operatorController.leftTrigger().whileTrue(this.elevator.nudgeDownCommand());
+		// reset the field-centric heading on left bumper press
+		driverController.back().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        // Operator bindings for manual algae manipulator arm movement.
-        this.operatorController.povLeft().whileTrue(this.algaeManipulator.manualDeployArm());
-        this.operatorController.povRight().whileTrue(this.algaeManipulator.manualRetractArm());
-        // Operator bindings for manual algae manipulator wheel movement.
-        this.operatorController.leftBumper().whileTrue(this.algaeManipulator.manualRemoveAlgaeFromReef());
-        this.operatorController.rightBumper().whileTrue(this.algaeManipulator.manualScoreAlgaeIntoBarge());
-        this.operatorController.back().onTrue(this.elevator.resetElevatorEncoder());
+		drivetrain.registerTelemetry(logger::telemeterize);
 
-        
-    }
+		// Alternative driving scheme for slow robot-relative driving meant for aligning manually
+		// TODO test that it drives slowly when a is held
+		// TODO test if the repeat command needs to be added for it to work
+		driverController.a().whileTrue( // new RepeatCommand(
+			drivetrain.applyRequest(() -> driveRR
+				.withVelocityX(-driverController.getLeftY() * MaxAlignmentSpeed * 0.5)
+				.withVelocityY(-driverController.getLeftX() * MaxAlignmentSpeed * 0.5)
+				.withRotationalRate(-driverController.getRightX() * MaxAlignmentSpeed * 0.5)
+			) // )
+		);			
+			
+		/* Testing basic robot movement in the cardinal directions */
+		// Drive straight forward slowly
+		driverController.povUp().whileTrue(
+			drivetrain.applyRequest(() -> driveRR
+				.withVelocityX(0.1 * MaxSpeed)
+				.withVelocityY(0.0)
+				.withRotationalRate(0.0)));
+		// Drive straight backward slowly
+		driverController.povDown().whileTrue(
+			drivetrain.applyRequest(() -> driveRR
+				.withVelocityX(-0.1 * MaxSpeed)
+				.withVelocityY(0.0)
+				.withRotationalRate(0.0)));
+		// Drive straight right slowly
+		driverController.povRight().whileTrue(
+			drivetrain.applyRequest(() -> driveRR
+				.withVelocityX(0.0)
+				.withVelocityY(-0.1 * MaxSpeed)
+				.withRotationalRate(0)));
+		// Drive straight left slowly
+		driverController.povLeft().whileTrue(
+			drivetrain.applyRequest(() -> driveRR
+				.withVelocityX(0.0)
+				.withVelocityY(0.1 * MaxSpeed)
+				.withRotationalRate(0)));
 
-    /**
-     * If the coral state is still intaking when called, go to the empty state. This is designed for the intake button
-     * release. If the intake was successful, the state will be carry when we get here and this method will not change
-     * it.
-     */
-    private void endIntakeProcessing() {
-        if (CoralState.INTAKE.isCurrent()) {
-            CoralState.setCurrentState(CoralState.EMPTY);
-        }
-    }
+		// Intake button binding. Rumble only happens on normal (not interrupted by button release) completion.
+		driverController.leftTrigger().whileTrue(
+			Commands.startEnd(
+				() -> CoralState.setCurrentState(CoralState.INTAKE),
+				this::endIntakeProcessing
+			)
+			.andThen(
+				Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
+				.andThen(Commands.waitSeconds(0.5))
+				.andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))))
+		);
 
-    /**
-     * Checks to see if the current task is to dealgae the reef. If so, the current state is set to
-     * {@link CoralState#MAY_HAVE_ALGAE}, otherwise it is set empty. This is designed to only be called on release of
-     * the score button binding.
-     */
-    private void setPostScoreState() {
-        if (ElevatedLevel.TRACKER.isCurrentAlgaeLevel() && this.algaeManipulator.isDealgae()) {
-            CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE);
-        } else {
-            CoralState.setCurrentState(CoralState.EMPTY);
-        }
-    }
+		// Driver coral jammed in hopper agitation bindings.
+		// On press, change to the hopper jammed state. On release, change to empty to be ready to intake again.
+		driverController.rightBumper()
+			.whileTrue(Commands.startEnd(
+				() -> CoralState.setCurrentState(CoralState.HOPPER_JAMMED),
+				() -> CoralState.setCurrentState(CoralState.EMPTY)));
 
-    /**
-     * Use this to pass the autonomous command to the main {@link Robot} class.
-     *
-     * @return the command to run in autonomous
-     */
-    public Command getAutonomousCommand() {
-        return SimpleAutos.doNothing();
-    }
+		// Driver prepare to score binding.
+		driverController.rightTrigger().onTrue(
+			Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+
+		// Subsystem derived prepare to score to ready to score bindings.
+		// TODO when have drive train, add it to this compound trigger.
+		final Trigger robotReadyToScoreTrigger = 
+			elevator.getReadyToScoreTrigger()
+			.and(algaeManipulator.getReadyToScoreTrigger());
+		// If preparing to score and subsystems are ready, we are now ready to score.
+		CoralState.PREPARE_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger)
+				.onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.READY_TO_SCORE)));
+		// If ready to score and a subsystem is no longer ready, we are back to preparing to score.
+		CoralState.READY_TO_SCORE.getTrigger().and(robotReadyToScoreTrigger.negate())
+				.onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+
+		// Driver score (coral or algae) binding.
+		// Note that the driver should treat the left bumper like a while held in all cases.
+		driverController.leftBumper().whileTrue(
+			Commands.startEnd(
+				() -> CoralState.setCurrentState(CoralState.SCORE),
+				this::setPostScoreState));
+
+		// Driver controller algae scoring level selection bindings.
+		driverController.b()
+			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_LOW)));
+		driverController.x()
+			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_HIGH)));
+		driverController.y()
+			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
+
+		// Both operator binding for return to carry and elevator to zero (was or'ed with driver pov down).
+		// TODO consider going to EMPTY and when we get to zero, run intake for a moment to decide between
+		// EMPTY/CARRY.
+		operatorController.povDown()
+			.onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
+
+		// Operator target coral scoring level selection bindings.
+		operatorController.a()
+			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1)));
+		operatorController.b()
+			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2)));
+		operatorController.x()
+			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3)));
+		operatorController.y()
+			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4)));
+
+		// Operator bindings for elevator nudges.
+		operatorController.rightTrigger().whileTrue(elevator.nudgeUpCommand());
+		operatorController.leftTrigger().whileTrue(elevator.nudgeDownCommand());
+
+		// Operator bindings for manual algae manipulator arm movement.
+		operatorController.povLeft().whileTrue(algaeManipulator.manualDeployArm());
+		operatorController.povRight().whileTrue(algaeManipulator.manualRetractArm());
+
+		// Operator bindings for manual algae manipulator wheel movement.
+		operatorController.leftBumper().whileTrue(algaeManipulator.manualRemoveAlgaeFromReef());
+		operatorController.rightBumper().whileTrue(algaeManipulator.manualScoreAlgaeIntoBarge());
+		
+		// Operator binding to reset elevator encoder.
+		operatorController.back().onTrue(elevator.resetElevatorEncoder());
+	}
+
+	/**
+	 * If the coral state is still set to "INTAKE" when called, go to the empty state. This is designed for the intake button
+	 * release. If the intake was successful, the state will be carry when we get here and this method will not change
+	 * it. If the intake was unsuccessful, we failed to pick up a coral and thus the state is set to "EMPTY".
+	 */
+	private void endIntakeProcessing() {
+		if (CoralState.INTAKE.isCurrent()) {
+			CoralState.setCurrentState(CoralState.EMPTY);
+		}
+	}
+
+	/**
+	 * Checks to see if the current task is to dealgae the reef. If so, the current state is set to
+	 * {@link CoralState#MAY_HAVE_ALGAE}, otherwise it is set empty. This is designed to only be called on release of
+	 * the score button binding.
+	 */
+	private void setPostScoreState() {
+		if (ElevatedLevel.TRACKER.isCurrentAlgaeLevel() && algaeManipulator.isDealgae()) {
+			CoralState.setCurrentState(CoralState.MAY_HAVE_ALGAE);
+		} else {
+			CoralState.setCurrentState(CoralState.EMPTY);
+		}
+	}
+
+	/**
+	 * Use this to pass the autonomous command to the main {@link Robot} class.
+	 *
+	 * @return the command to run in autonomous
+	 */
+	public Command getAutonomousCommand() {
+		// return autoChooser.getSelected();
+		return Commands.none();
+	}
 }

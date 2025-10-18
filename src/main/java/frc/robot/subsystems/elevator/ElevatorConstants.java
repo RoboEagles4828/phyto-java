@@ -24,7 +24,7 @@ class ElevatorConstants {
      * does not support null keys nor values.
      */
     static final Map<ElevatedLevel, Double> LEVEL_TO_POSITION = Map.of(
-            CoralLevel.L1, 1.1,
+            CoralLevel.L1, 1.2,
             CoralLevel.L2, 1.70,
             CoralLevel.L3, 2.5,
             CoralLevel.L4, 3.8,

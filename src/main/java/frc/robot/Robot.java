@@ -67,7 +67,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());
 
         SmartDashboard.putNumber("Current Tag Reading", LimelightHelpers.getFiducialID(AutoAlignConstants.LIMELIGHT_NAME));
-        
+
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -117,6 +117,7 @@ public class Robot extends TimedRobot {
         }
 
         CameraServer.startAutomaticCapture();
+        
     }
 
     /**

@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -182,6 +183,9 @@ public class RobotContainer {
 
 		// driverController.start().onTrue(Commands.runOnce());
 
+		operatorController.start().onTrue(Commands.runOnce(() -> SignalLogger.start()));
+		operatorController.back().onTrue(Commands.runOnce(() -> SignalLogger.stop()));
+
 		drivetrain.registerTelemetry(logger::telemeterize);
 
 		// Alternative driving scheme for slow robot-relative driving meant for aligning manually
@@ -300,7 +304,7 @@ public class RobotContainer {
 		operatorController.rightBumper().whileTrue(algaeManipulator.manualScoreAlgaeIntoBarge());
 		
 		// Operator binding to reset elevator encoder.
-		operatorController.back().onTrue(elevator.resetElevatorEncoder());
+		// operatorController.back().onTrue(elevator.resetElevatorEncoder());
 	}
 
 	/**

@@ -16,6 +16,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 // import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -340,4 +341,12 @@ public class RobotContainer {
 		// return autoChooser.getSelected();
 		return Commands.none();
 	}
+
+    public void displayPoseEstimate() {
+		SmartDashboard.putString("Drivetrain Pose Estimate: ", drivetrain.getState().Pose.toString()); 
+    }
+
+	public void addVisionMeasurement(Pose2d cameraPose, double timestamp) {
+        drivetrain.addVisionMeasurement(cameraPose, timestamp);
+    }
 }

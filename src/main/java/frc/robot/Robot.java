@@ -67,7 +67,41 @@ public class Robot extends TimedRobot {
         SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());
 
         SmartDashboard.putNumber("Current Tag Reading", LimelightHelpers.getFiducialID(AutoAlignConstants.LIMELIGHT_NAME));
+        
+                
+        // Print limelight output
+        LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
+        SmartDashboard.putNumber("Limelight Fiducial ID", LimelightHelpers.getFiducialID(""));
+        SmartDashboard.putBoolean("Limelight Has Target", LimelightHelpers.getTV(""));
+        SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
+        SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
 
+        // Print the drivetrain's pose estimate 
+        robotContainer.displayPoseEstimate();
+
+        // Perform filtering on camera reading
+        boolean acceptLimelightUpdate = true;
+
+        // If we see more than one tag, reject
+        if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
+            acceptLimelightUpdate = false;
+        } else {
+            // If ambiguity is too high, reject
+            if (mt1.rawFiducials[0].ambiguity > .7) {
+                acceptLimelightUpdate = false;
+            }
+            // If we're too far from the tag, reject
+            if (mt1.rawFiducials[0].distToCamera > 3) {
+                acceptLimelightUpdate = false;
+            }
+        }
+
+        if (acceptLimelightUpdate) {
+            //todo(ben): commented out for now, until we can test this better
+            //robotContainer.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
+        }
+
+        SmartDashboard.putBoolean("Limelight Update Accepted", acceptLimelightUpdate);
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

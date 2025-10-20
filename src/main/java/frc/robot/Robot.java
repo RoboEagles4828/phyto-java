@@ -6,10 +6,10 @@ package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants.AutoAlignConstants;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
 
@@ -64,44 +64,12 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
 
         SmartDashboard.putString("Coral State", CoralState.getCurrentState().toString());
-        SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());
-
-        SmartDashboard.putNumber("Current Tag Reading", LimelightHelpers.getFiducialID(AutoAlignConstants.LIMELIGHT_NAME));
-        
-                
-        // Print limelight output
-        LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
-        SmartDashboard.putNumber("Limelight Fiducial ID", LimelightHelpers.getFiducialID(""));
-        SmartDashboard.putBoolean("Limelight Has Target", LimelightHelpers.getTV(""));
-        SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
-        SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
+        SmartDashboard.putString("Elevated Level", ElevatedLevel.TRACKER.getCurrentLevel().toString());        
 
         // Print the drivetrain's pose estimate 
         robotContainer.displayPoseEstimate();
 
-        // Perform filtering on camera reading
-        boolean acceptLimelightUpdate = true;
-
-        // If we see more than one tag, reject
-        if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
-            acceptLimelightUpdate = false;
-        } else {
-            // If ambiguity is too high, reject
-            if (mt1.rawFiducials[0].ambiguity > .7) {
-                acceptLimelightUpdate = false;
-            }
-            // If we're too far from the tag, reject
-            if (mt1.rawFiducials[0].distToCamera > 3) {
-                acceptLimelightUpdate = false;
-            }
-        }
-
-        if (acceptLimelightUpdate) {
-            //todo(ben): commented out for now, until we can test this better
-            //robotContainer.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
-        }
-
-        SmartDashboard.putBoolean("Limelight Update Accepted", acceptLimelightUpdate);
+        robotContainer.addVisionMeasurement();
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -119,14 +87,14 @@ public class Robot extends TimedRobot {
         // TODO look into calling seedFieldCentric on the drive at auto start.
         // Consider red/blue (may not matter with CTRE and autopilot) and maybe selected auto.
         // Enabled into autonomous or practice match.
-        this.enabledDirectToTeleOp = false;
+        enabledDirectToTeleOp = false;
         // Autonomous always starts with coral loaded. Setting here to cover repeated testing cases.
         CoralState.setCurrentState(CoralState.CARRY);
-        this.autonomousCommand = this.robotContainer.getAutonomousCommand();
+        autonomousCommand = robotContainer.getAutonomousCommand();
 
         // schedule the autonomous command (example)
-        if (this.autonomousCommand != null) {
-            this.autonomousCommand.schedule();
+        if (autonomousCommand != null) {
+            autonomousCommand.schedule();
         }
     }
 

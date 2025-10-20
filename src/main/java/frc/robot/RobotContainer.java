@@ -36,12 +36,15 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.commands.SimpleAutos;
 import frc.robot.game.*;
 import frc.robot.subsystems.algaemanipulator.AlgaeManipulator;
 import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.limelight.AutoAlign;
+import frc.robot.subsystems.limelight.Limelight;
 import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
 import frc.robot.subsystems.swerve.TunerConstants;
 
@@ -71,6 +74,9 @@ public class RobotContainer {
 
 	/** The elevator is used to move game piece manipulators between levels. */
 	private final Elevator elevator = new Elevator();
+
+	/** The limelight camera used for vision and autoalign. */
+	private final Limelight limelight = new Limelight();
 	
 
 	/* ======================= */
@@ -182,7 +188,11 @@ public class RobotContainer {
 		// reset the field-centric heading on left bumper press
 		driverController.back().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-		// driverController.start().onTrue(Commands.runOnce());
+		// auto align to the reef
+		// TODO make these bindings just povRight/Left without anding with a
+		// TODO consider adding new buttons on the driver controller to accomodate auto align
+		driverController.povRight().and(driverController.a()).onTrue(new AutoAlign(drivetrain, limelight, true));
+		driverController.povLeft().and(driverController.a()).onTrue(new AutoAlign(drivetrain, limelight, false));
 
 		operatorController.start().onTrue(Commands.runOnce(() -> SignalLogger.start()));
 		operatorController.back().onTrue(Commands.runOnce(() -> SignalLogger.stop()));
@@ -346,7 +356,11 @@ public class RobotContainer {
 		SmartDashboard.putString("Drivetrain Pose Estimate: ", drivetrain.getState().Pose.toString()); 
     }
 
-	public void addVisionMeasurement(Pose2d cameraPose, double timestamp) {
-        drivetrain.addVisionMeasurement(cameraPose, timestamp);
+	public void addVisionMeasurement() {
+        PoseEstimate mt1 = limelight.getLimeLightPoseEstimate();
+		if (mt1 != null){
+			drivetrain.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
+		}
     }
+
 }

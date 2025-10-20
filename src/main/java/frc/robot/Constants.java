@@ -53,9 +53,4 @@ public final class Constants {
         public static final int ELEVATOR_QUAD_ENCODER_B_CHANNEL = 2;
     }
 
-    public static class AutoAlignConstants {
-        public static final String LIMELIGHT_NAME = "limelight-";
-        public static final AprilTagFields APRIL_TAG_FIELD_TYPE = AprilTagFields.k2025ReefscapeAndyMark;
-        
-    }
 }

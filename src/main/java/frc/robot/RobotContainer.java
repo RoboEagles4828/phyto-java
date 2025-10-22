@@ -191,8 +191,8 @@ public class RobotContainer {
 		// auto align to the reef
 		// TODO make these bindings just povRight/Left without anding with a
 		// TODO consider adding new buttons on the driver controller to accomodate auto align
-		driverController.povRight().and(driverController.a()).onTrue(new AutoAlign(drivetrain, limelight, true));
-		driverController.povLeft().and(driverController.a()).onTrue(new AutoAlign(drivetrain, limelight, false));
+		driverController.b().onTrue(new AutoAlign(drivetrain, limelight, true));
+		driverController.x().onTrue(new AutoAlign(drivetrain, limelight, false));
 
 		operatorController.start().onTrue(Commands.runOnce(() -> SignalLogger.start()));
 		operatorController.back().onTrue(Commands.runOnce(() -> SignalLogger.stop()));
@@ -258,6 +258,8 @@ public class RobotContainer {
 		// Driver prepare to score binding.
 		driverController.rightTrigger().onTrue(
 			Commands.runOnce(() -> CoralState.setCurrentState(CoralState.PREPARE_TO_SCORE)));
+		driverController.rightTrigger().onFalse(
+			Commands.runOnce(this::setPostScoreState));
 
 		// Subsystem derived prepare to score to ready to score bindings.
 		// TODO when have drive train, add it to this compound trigger.
@@ -274,16 +276,20 @@ public class RobotContainer {
 		// Driver score (coral or algae) binding.
 		// Note that the driver should treat the left bumper like a while held in all cases.
 		driverController.leftBumper().whileTrue(
-			Commands.startEnd(
-				() -> CoralState.setCurrentState(CoralState.SCORE),
-				this::setPostScoreState));
+			Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
 
 		// Driver controller algae scoring level selection bindings.
-		driverController.b()
+		// driverController.b()
+		// 	.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_LOW)));
+		// driverController.x()
+		// 	.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_HIGH)));
+		// driverController.y()
+		// 	.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
+		operatorController.povRight()
 			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_LOW)));
-		driverController.x()
+		operatorController.povLeft()
 			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_HIGH)));
-		driverController.y()
+		operatorController.povUp()
 			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
 
 		// Both operator binding for return to carry and elevator to zero (was or'ed with driver pov down).
@@ -307,8 +313,9 @@ public class RobotContainer {
 		operatorController.leftTrigger().whileTrue(elevator.nudgeDownCommand());
 
 		// Operator bindings for manual algae manipulator arm movement.
-		operatorController.povLeft().whileTrue(algaeManipulator.manualDeployArm());
-		operatorController.povRight().whileTrue(algaeManipulator.manualRetractArm());
+		// operatorController.povLeft().whileTrue(algaeManipulator.manualDeployArm());
+		// operatorController.povRight().whileTrue(algaeManipulator.manualRetractArm());
+
 
 		// Operator bindings for manual algae manipulator wheel movement.
 		operatorController.leftBumper().whileTrue(algaeManipulator.manualRemoveAlgaeFromReef());

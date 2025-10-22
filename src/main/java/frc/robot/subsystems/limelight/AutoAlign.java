@@ -68,7 +68,7 @@ public class AutoAlign extends SequentialCommandGroup {
         addCommands(
             new InstantCommand(() -> drivetrain.applyRequest(() -> idle)),
             new WaitCommand(0.20),
-            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain)),
+            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain, limelight)),
             new InstantCommand(() -> drivetrain.applyRequest(() -> idle))
         );
     }
@@ -94,6 +94,6 @@ public class AutoAlign extends SequentialCommandGroup {
             return new InstantCommand(
                 () -> System.out.println("Conditions not met for autoalign; No acceptable target detected by Limelight."));
         }
-    }    
+    } 
 }
 

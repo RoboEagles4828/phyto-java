@@ -5,6 +5,8 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.HttpCamera;
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -69,7 +71,7 @@ public class Robot extends TimedRobot {
         // Print the drivetrain's pose estimate 
         robotContainer.displayPoseEstimate();
 
-        robotContainer.addVisionMeasurement();
+        
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -79,6 +81,15 @@ public class Robot extends TimedRobot {
 
     @Override
     public void disabledPeriodic() {
+    }
+
+    @Override
+    public void robotInit() {
+        PortForwarder.add(5801, "limelight-roboeag.local", 5801);
+        HttpCamera limelightFeed = new HttpCamera("limelight", "http://10.48.28.11:5800/stream.mjpg");
+        CameraServer.addCamera(limelightFeed);
+        Shuffleboard.getTab("limelighttesting").add(limelightFeed);
+        
     }
 
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
@@ -96,6 +107,9 @@ public class Robot extends TimedRobot {
         if (autonomousCommand != null) {
             autonomousCommand.schedule();
         }
+
+        robotContainer.addCameraFeed();
+        // CameraServer.startAutomaticCapture("limelight", 0);
     }
 
     /** This function is called periodically during autonomous. */
@@ -117,8 +131,6 @@ public class Robot extends TimedRobot {
         if (this.enabledDirectToTeleOp) {
             CoralState.setCurrentState(CoralState.EMPTY);
         }
-
-        CameraServer.startAutomaticCapture();
         
     }
 

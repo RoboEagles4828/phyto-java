@@ -16,6 +16,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 // import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.GenericEntry;
@@ -240,6 +241,7 @@ public class RobotContainer {
 		driverController.leftTrigger().whileTrue(
 			Commands.startEnd(
 				() -> CoralState.setCurrentState(CoralState.INTAKE),
+
 				this::endIntakeProcessing
 			)
 			.andThen(
@@ -369,5 +371,10 @@ public class RobotContainer {
 			drivetrain.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
 		}
     }
+
+	public void addCameraFeed(){
+		CameraServer.addCamera(limelight.getCameraFeed());
+        Shuffleboard.getTab("SmartDashboard").add(limelight.getCameraFeed());
+	}
 
 }

@@ -29,7 +29,7 @@ public class Limelight extends SubsystemBase {
         hasTarget = () -> LimelightHelpers.getTV(limelightName);
         acceptLimelightReading = this::acceptLimelightUpdate;
         cameraFeed = new HttpCamera("Limelight", LimelightConstants.LIMELIGHT_URL);
-        this.addCamera();
+        // this.addCamera();
 
     }
 
@@ -45,18 +45,21 @@ public class Limelight extends SubsystemBase {
      * Perform Filtering on camera reading.
      */
     public boolean acceptLimelightUpdate() {
-        if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
-            return false;
-        } else {
-            // If ambiguity is too high, reject
-            if (mt1.rawFiducials[0].ambiguity > .7) {
+        if (mt1 != null){
+            if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
                 return false;
-            }
-            // If we're too far from the tag, reject
-            if (mt1.rawFiducials[0].distToCamera > 3) {
-                return false;
+            } else {
+                // If ambiguity is too high, reject
+                if (mt1.rawFiducials[0].ambiguity > .7) {
+                    return false;
+                }
+                // If we're too far from the tag, reject
+                if (mt1.rawFiducials[0].distToCamera > 3) {
+                    return false;
+                }
             }
         }
+        
         return true;
     }
 
@@ -80,14 +83,21 @@ public class Limelight extends SubsystemBase {
         return acceptLimelightReading.getAsBoolean();
     }
 
+    public HttpCamera getCameraFeed(){
+        return cameraFeed;
+    }
+
     @Override
     public void periodic() {
         // Print limelight info to SmartDashboard
-        mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(LimelightConstants.LIMELIGHT_NAME);
+        mt1 = getLimeLightPoseEstimate();
         SmartDashboard.putNumber("Limelight Fiducial ID", getCurrentTagID());
         SmartDashboard.putBoolean("Limelight Has Target", hasTarget());
-        SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
-        SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
+        if (mt1 != null){
+            SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
+            SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
+        }
+        
         SmartDashboard.putBoolean("Limelight Update Accepted", getAcceptLimelightReading());
     }
 }

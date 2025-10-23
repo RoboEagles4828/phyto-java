@@ -6,7 +6,7 @@ import edu.wpi.first.math.util.Units;
 
 public class LimelightConstants {
     public static final String LIMELIGHT_NAME = "limelight-";
-    public static final String LIMELIGHT_URL = "http://limelight.local:5801/stream.mjpg";
+    public static final String LIMELIGHT_URL = "http://0.0.0.0:5800/stream.mjpg";
 
     public static final AprilTagFields APRIL_TAG_FIELD_TYPE = AprilTagFields.k2025ReefscapeAndyMark;
     public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(APRIL_TAG_FIELD_TYPE);

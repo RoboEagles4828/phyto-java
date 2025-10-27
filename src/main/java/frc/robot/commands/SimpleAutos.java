@@ -27,12 +27,12 @@ public final class SimpleAutos {
     /**
      * @param drivetrain
      * @param drive
-     * @return a command that moves the robot at velocity 1 m/s backward for 3 seconds
+     * @return a command that moves the robot at velocity 0.5 m/s backward for 2 seconds
      */
-    public static Command move(CommandSwerveDrivetrain drivetrain, SwerveRequest.FieldCentric drive) {
-        return drivetrain.applyRequest(() -> drive.withVelocityX(-1)
-                                                .withVelocityY(0)
-                                                .withRotationalRate(0)).withTimeout(3);
+    public static Command move(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric drive) {
+        return drivetrain.applyRequest(() -> drive.withVelocityX(-0.5)
+                .withVelocityY(0)
+                .withRotationalRate(0)).withTimeout(2.0);
     }
 
     private SimpleAutos() {

@@ -135,7 +135,7 @@ public class RobotContainer {
 		configureBindings();
 
 		// Puts the chooser on SmartDashboard
-		// SmartDashboard.putData("Auto Chooser", autoChooser);
+		SmartDashboard.putData("Auto Chooser", autoChooser);
 	}
 
 	/**
@@ -352,8 +352,7 @@ public class RobotContainer {
 	 * @return the command to run in autonomous
 	 */
 	public Command getAutonomousCommand() {
-		// return autoChooser.getSelected();
-		return Commands.none();
+		return autoChooser.getSelected();
 	}
 
     public void displayPoseEstimate() {

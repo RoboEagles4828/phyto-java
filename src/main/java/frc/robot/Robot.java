@@ -108,8 +108,6 @@ public class Robot extends TimedRobot {
             autonomousCommand.schedule();
         }
 
-        robotContainer.addCameraFeed();
-        // CameraServer.startAutomaticCapture("limelight", 0);
     }
 
     /** This function is called periodically during autonomous. */

@@ -315,6 +315,37 @@ public class RobotContainer {
 	}
 
 	/**
+	 * The commands V3 framework is coming in 2027. They will be adding the ability to scope triggers to modes (auto,
+	 * teleop, etc) and/or a command (trigger only active while the command is running). For now, we have to scope them
+	 * ourselves, but is not to hard. Isolating the auto only triggers here for ease of maintanence.
+	 * 
+	 * <p>
+	 * What follows is how I think you could use this to get the path auto to score, first just once. And then, maybe
+	 * more in the furture.
+	 * 
+	 * <p>
+	 * This method is not currently called anywhere. If you call if from robot container construction, I believe, to get
+	 * the now working path auto to try to score, you would modify the auto defintion to put the path in a sequential
+	 * group (the root sequence) with the path first and then a named command that just sets the current coral state to
+	 * prepare to score. When prepare to score completes (elevator is on target), the state will transistion to ready to
+	 * score and the trigger defined here will fire.
+	 * 
+	 * <p>
+	 * For multi-coral auto, you add to the root sequence a named commmand that waits until the current state is no
+	 * longer SCORE. That is followed, in the same root sequence, by a parallel group to a path to the human player
+	 * station and a named command to lower the elevator. Then, a named command to transition coral state to intake.
+	 * Then, a named command that waits until coral state is CARRY. These last two could be combined by defining a
+	 * single named command using startEnd (I think).
+	 * 
+	 * <p>
+	 * Next is the path to the second score followed by transition to prepare to score. Rinse and repeat.
+	 */
+	private void configureAutoBindings() {
+		final Trigger autoScoreTrigger = RobotModeTriggers.autonomous().and(CoralState.READY_TO_SCORE.getTrigger());
+		autoScoreTrigger.onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
+	}
+
+	/**
 	 * If the coral state is still set to "INTAKE" when called, go to the empty state. This is designed for the intake button
 	 * release. If the intake was successful, the state will be carry when we get here and this method will not change
 	 * it. If the intake was unsuccessful, we failed to pick up a coral and thus the state is set to "EMPTY".

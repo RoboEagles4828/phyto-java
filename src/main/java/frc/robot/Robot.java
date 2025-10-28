@@ -5,10 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.HttpCamera;
-import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -19,16 +16,6 @@ import frc.robot.game.ElevatedLevel;
  * The methods in this class are called automatically corresponding to each mode, as described in the TimedRobot
  * documentation. If you change the name of this class or the package after creating this project, you must also update
  * the Main.java file in the project.
- * 
- * <p>
- * TODO consider time slicing our major periodic work across the 20ms heartbeat. For example:
- * <ol>
- * <li>robot periodic functions (required and enforced to always be first). Keep minimal.
- * <li>dashboard updates (not in subsystem periodics but our own method)
- * <li>update odometry from vision
- * <li>command scheduler
- * <li>logging?
- * </ol>
  */
 public class Robot extends TimedRobot {
     /** Command selected for execution during {@link #autonomousInit()} */
@@ -70,8 +57,6 @@ public class Robot extends TimedRobot {
 
         // Print the drivetrain's pose estimate 
         robotContainer.displayPoseEstimate();
-
-        
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -85,17 +70,14 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        PortForwarder.add(5801, "limelight-roboeag.local", 5801);
-        HttpCamera limelightFeed = new HttpCamera("limelight", "http://10.48.28.11:5800/stream.mjpg");
-        CameraServer.addCamera(limelightFeed);
-        Shuffleboard.getTab("limelighttesting").add(limelightFeed);
-        
+        CameraServer.startAutomaticCapture();
     }
 
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
         // TODO look into calling seedFieldCentric on the drive at auto start.
+
         // Consider red/blue (may not matter with CTRE and autopilot) and maybe selected auto.
         // Enabled into autonomous or practice match.
         enabledDirectToTeleOp = false;

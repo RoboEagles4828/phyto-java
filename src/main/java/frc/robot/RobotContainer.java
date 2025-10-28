@@ -121,19 +121,6 @@ public class RobotContainer {
 	private final CommandXboxController operatorController = new CommandXboxController(
 			OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
-	
-	/* ========== */
-	/* AUTONOMOUS */
-	/* ========== */
-
-	// TODO register named commands/construct a class to do this to keep this class clean
-	// NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
-
-	/** Autochooser to select auton through SmartDashboard.
-	 *  Can specify default autonomous command or leave blank for Commands.none()
-	*/
-	// Simple autos will be added below during construction.
-
 	/** The container for the robot. Contains subsystems, OI devices, and commands. */
 	public RobotContainer() {
 		autoChooser = AutoBuilder.buildAutoChooser();
@@ -162,7 +149,6 @@ public class RobotContainer {
 			// Drive forward with negative Y (left joystick forward)
 			// Drive left with negative X (left joystick left)
 			// Drive counterclockwise with negative X (right joystick left)
-				
 			drivetrain.applyRequest(() -> drive
 				.withVelocityX(-driverController.getLeftY() * MaxSpeed)
 				.withVelocityY(-driverController.getLeftX() * MaxSpeed)
@@ -244,7 +230,6 @@ public class RobotContainer {
 		driverController.leftTrigger().whileTrue(
 			Commands.startEnd(
 				() -> CoralState.setCurrentState(CoralState.INTAKE),
-
 				this::endIntakeProcessing
 			)
 			.andThen(
@@ -321,7 +306,6 @@ public class RobotContainer {
 		// operatorController.povLeft().whileTrue(algaeManipulator.manualDeployArm());
 		// operatorController.povRight().whileTrue(algaeManipulator.manualRetractArm());
 
-
 		// Operator bindings for manual algae manipulator wheel movement.
 		operatorController.leftBumper().whileTrue(algaeManipulator.manualRemoveAlgaeFromReef());
 		operatorController.rightBumper().whileTrue(algaeManipulator.manualScoreAlgaeIntoBarge());
@@ -373,10 +357,4 @@ public class RobotContainer {
 			drivetrain.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
 		}
     }
-
-	public void addCameraFeed(){
-		CameraServer.addCamera(limelight.getCameraFeed());
-        Shuffleboard.getTab("SmartDashboard").add(limelight.getCameraFeed());
-	}
-
 }

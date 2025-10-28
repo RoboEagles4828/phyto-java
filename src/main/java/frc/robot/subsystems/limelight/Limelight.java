@@ -28,9 +28,6 @@ public class Limelight extends SubsystemBase {
         currentTagReading = () -> (int) LimelightHelpers.getFiducialID(limelightName);
         hasTarget = () -> LimelightHelpers.getTV(limelightName);
         acceptLimelightReading = this::acceptLimelightUpdate;
-        cameraFeed = new HttpCamera("Limelight", LimelightConstants.LIMELIGHT_URL);
-        // this.addCamera();
-
     }
 
     /**

@@ -145,7 +145,7 @@ public class Cannon extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Cannon / Left Stator Current", this.leftsideWheels.getStatorCurrent());
-        SmartDashboard.putNumber("Cannon / Right Stator Current", this.rightsideWheels.getStatorCurrent());
+        // SmartDashboard.putNumber("Cannon / Left Stator Current", this.leftsideWheels.getStatorCurrent());
+        // SmartDashboard.putNumber("Cannon / Right Stator Current", this.rightsideWheels.getStatorCurrent());
     }
 }

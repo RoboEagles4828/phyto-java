@@ -11,24 +11,14 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-import edu.wpi.first.cameraserver.CameraServer;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.DriverStation;
+
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -80,6 +70,8 @@ public class RobotContainer {
 	/** The limelight camera used for vision and autoalign. */
 	private final Limelight limelight = new Limelight();
 	
+	/** Command to score coral */
+	private final Command scoreCoralComamnd = new InstantCommand(() -> CoralState.setCurrentState(CoralState.SCORE));
 
 	/* ======================= */
 	/* CTRE SWERVE NECESSITIES */
@@ -265,8 +257,7 @@ public class RobotContainer {
 
 		// Driver score (coral or algae) binding.
 		// Note that the driver should treat the left bumper like a while held in all cases.
-		driverController.leftBumper().whileTrue(
-			Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
+		driverController.leftBumper().whileTrue(scoreCoralComamnd);
 
 		// Driver controller algae scoring level selection bindings.
 		// driverController.b()

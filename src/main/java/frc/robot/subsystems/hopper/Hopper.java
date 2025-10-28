@@ -62,6 +62,6 @@ public class Hopper extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Hopper / Stator Current", this.feedWheels.getStatorCurrent());
+        // SmartDashboard.putNumber("Hopper / Stator Current", this.feedWheels.getStatorCurrent());
     }
 }

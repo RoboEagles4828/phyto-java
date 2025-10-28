@@ -48,6 +48,13 @@ public class Limelight extends SubsystemBase {
         return LimelightHelpers.getTV(limelightName);
     }
 
+    public PoseEstimate getLimeLightPoseEstimate() {
+        if (!acceptLimelightUpdate()) {
+            return null;
+        }
+        return mt1;
+    }
+
     @Override
     public void periodic() {
         mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);

@@ -63,7 +63,7 @@ public class Elevator extends SubsystemBase {
     /** The post nudge resume holding command. */
     private final Command holdPositionPostNudge = this.run(
             this::gotoAndHoldCurrentTargetPositionRun);
-
+    
     /**
      * Creates the elevator subsystem, configures the motors, and creates game piece state bindings.
      */
@@ -259,6 +259,10 @@ public class Elevator extends SubsystemBase {
      */
     public Command resetElevatorEncoder(){
         return Commands.runOnce(() -> this.rightMotorLeader.setPosition(0.0)).andThen(Commands.runOnce(() -> this.elevatorPositionEncoder.reset()));
+    }
+
+    public Command getMoveToAndHoldCommand() {
+        return moveToAndHoldCommand;
     }
 
     @Override

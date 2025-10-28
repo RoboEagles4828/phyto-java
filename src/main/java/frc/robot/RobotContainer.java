@@ -120,7 +120,7 @@ public class RobotContainer {
 		this.autoChooser.addOption("Do Nothing", SimpleAutos.doNothing());
 		this.autoChooser.setDefaultOption("Move Off Line", SimpleAutos.move(drivetrain, driveRR));
 		SmartDashboard.putData("Auto Chooser", autoChooser);
-		
+
 		// Configure the trigger bindings
 		configureBindings();
 	}

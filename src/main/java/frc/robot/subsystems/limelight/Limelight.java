@@ -1,13 +1,5 @@
 package frc.robot.subsystems.limelight;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.IntSupplier;
-
-import com.ctre.phoenix6.StatusSignal.SignalMeasurement;
-
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.HttpCamera;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
@@ -15,86 +7,61 @@ import frc.robot.LimelightHelpers.PoseEstimate;
 
 public class Limelight extends SubsystemBase {
     private final String limelightName;
-    private IntSupplier currentTagReading;
-    private BooleanSupplier hasTarget;
-    private BooleanSupplier acceptLimelightReading;
-    private HttpCamera cameraFeed;
-
     private PoseEstimate mt1;
 
     public Limelight() {
         limelightName = LimelightConstants.LIMELIGHT_NAME;
-        
-        currentTagReading = () -> (int) LimelightHelpers.getFiducialID(limelightName);
-        hasTarget = () -> LimelightHelpers.getTV(limelightName);
-        acceptLimelightReading = this::acceptLimelightUpdate;
-    }
-
-    /**
-     * Add limelight camera feed to SmaartDashboard
-     */
-    public void addCamera() {
-        CameraServer.addCamera(cameraFeed);
-        Shuffleboard.getTab("SmartDashboard").add(cameraFeed);
     }
 
     /**
      * Perform Filtering on camera reading.
      */
     public boolean acceptLimelightUpdate() {
-        if (mt1 != null){
-            if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
-                return false;
-            } else {
-                // If ambiguity is too high, reject
-                if (mt1.rawFiducials[0].ambiguity > .7) {
-                    return false;
-                }
-                // If we're too far from the tag, reject
-                if (mt1.rawFiducials[0].distToCamera > 3) {
-                    return false;
-                }
-            }
+        // if we don't have an estimate at all, reject
+        if (mt1 == null) {
+            return false;
         }
-        
+
+        // if we see multiple tags, reject
+        if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
+            return false;
+        }
+
+        // If ambiguity is too high, reject
+        if (mt1.rawFiducials[0].ambiguity > .7) {
+            return false;
+        }
+
+        // If we're too far from the tag, reject
+        if (mt1.rawFiducials[0].distToCamera > 3) {
+            return false;
+        }
+
         return true;
     }
 
-    public PoseEstimate getLimeLightPoseEstimate() {
-        if (acceptLimelightReading.getAsBoolean()) {
-            return mt1;
-        } else {
-            return null;
-        }
-    }
-
     public int getCurrentTagID() {
-        return currentTagReading.getAsInt();
+        return (int) LimelightHelpers.getFiducialID(limelightName);
     }
 
     public boolean hasTarget() {
-        return hasTarget.getAsBoolean();
-    }
-
-    public boolean getAcceptLimelightReading() {
-        return acceptLimelightReading.getAsBoolean();
-    }
-
-    public HttpCamera getCameraFeed(){
-        return cameraFeed;
+        return LimelightHelpers.getTV(limelightName);
     }
 
     @Override
     public void periodic() {
+        mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
+
+        // todo(ben) - feed limelight pose to drive IFF the update is accepted (probably not done in here, but in
+        // robotPeriodic?)
+
         // Print limelight info to SmartDashboard
-        mt1 = getLimeLightPoseEstimate();
         SmartDashboard.putNumber("Limelight Fiducial ID", getCurrentTagID());
         SmartDashboard.putBoolean("Limelight Has Target", hasTarget());
-        if (mt1 != null){
+        SmartDashboard.putBoolean("Limelight Update Accepted", acceptLimelightUpdate());
+        if (mt1 != null) {
             SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
             SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
         }
-        
-        SmartDashboard.putBoolean("Limelight Update Accepted", getAcceptLimelightReading());
     }
 }

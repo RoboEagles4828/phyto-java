@@ -5,7 +5,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.util.Units;
 
 public class LimelightConstants {
-    public static final String LIMELIGHT_NAME = "limelight-";
+    public static final String LIMELIGHT_NAME = "limelight";
     public static final String LIMELIGHT_URL = "http://0.0.0.0:5800/stream.mjpg";
 
     public static final AprilTagFields APRIL_TAG_FIELD_TYPE = AprilTagFields.k2025ReefscapeAndyMark;

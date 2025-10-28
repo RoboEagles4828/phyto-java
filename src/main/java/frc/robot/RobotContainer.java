@@ -11,8 +11,18 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import edu.wpi.first.cameraserver.CameraServer;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -45,6 +55,7 @@ import frc.robot.subsystems.swerve.TunerConstants;
  * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+	private final SendableChooser<Command> autoChooser;
 	/* ========== */
 	/* SUBSYSTEMS */
 	/* ========== */
@@ -121,21 +132,18 @@ public class RobotContainer {
 	/** Autochooser to select auton through SmartDashboard.
 	 *  Can specify default autonomous command or leave blank for Commands.none()
 	*/
-	// private final SendableChooser<Command> autoChooser = AutoBuilder.buildAutoChooser();
-	private final SendableChooser<Command> autoChooser = new SendableChooser<>(); // TODO temp
 	// Simple autos will be added below during construction.
 
 	/** The container for the robot. Contains subsystems, OI devices, and commands. */
 	public RobotContainer() {
+		autoChooser = AutoBuilder.buildAutoChooser();
 		// Add simple autos to chooser.
 		this.autoChooser.addOption("Do Nothing", SimpleAutos.doNothing());
 		this.autoChooser.setDefaultOption("Move Off Line", SimpleAutos.move(drivetrain, driveRR));
-
+		SmartDashboard.putData("Auto Chooser", autoChooser);
+		
 		// Configure the trigger bindings
 		configureBindings();
-
-		// Puts the chooser on SmartDashboard
-		SmartDashboard.putData("Auto Chooser", autoChooser);
 	}
 
 	/**

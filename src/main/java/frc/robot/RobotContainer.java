@@ -124,7 +124,7 @@ public class RobotContainer {
 
 		// Configure the trigger bindings
 		configureBindings();
-		NamedCommands.registerCOmmand("ElevatorLiftL2", scoreCoralComamnd);
+		NamedCommands.registerCommand("ElevatorLiftL2", scoreCoralCommand);
 	}
 
 	/**

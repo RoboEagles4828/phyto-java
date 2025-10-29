@@ -295,10 +295,10 @@ public class RobotContainer {
 
 		// Operator target coral scoring level selection bindings.
 
-		operatorController.a().runOnce(setElevatorL1Command);
-		operatorController.b().runOnce(setElevatorL2Command);
-		operatorController.x().runOnce(setElevatorL3Command);
-		operatorController.y().runOnce(setElevatorL4Command);
+		operatorController.a().onTrue(setElevatorL1Command);
+		operatorController.b().onTrue(setElevatorL2Command);
+		operatorController.x().onTrue(setElevatorL3Command);
+		operatorController.y().onTrue(setElevatorL4Command);
 
 		// Operator bindings for elevator nudges.
 		operatorController.rightTrigger().whileTrue(elevator.nudgeUpCommand());

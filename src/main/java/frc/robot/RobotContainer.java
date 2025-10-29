@@ -73,6 +73,11 @@ public class RobotContainer {
 	
 	/** Command to score coral */
 	private final Command scoreCoralCommand = new InstantCommand(() -> CoralState.setCurrentState(CoralState.SCORE));
+	private final Command setElevatorL1Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1));
+	private final Command setElevatorL2Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2));
+	private final Command setElevatorL3Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3));
+	private final Command setElevatorL4Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4));
+
 
 	/* ======================= */
 	/* CTRE SWERVE NECESSITIES */
@@ -85,6 +90,8 @@ public class RobotContainer {
 	private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 	// max speed for manual alignment
 	private double MaxAlignmentSpeed = (MetersPerSecond.of(1)).in(MetersPerSecond);
+
+	// Setting elevator levels for various scoring/intake positions
 
 	// Setting up bindings for necessary control of the swerve drive platform
 	private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -124,7 +131,12 @@ public class RobotContainer {
 
 		// Configure the trigger bindings
 		configureBindings();
-		NamedCommands.registerCommand("ElevatorLiftL2", scoreCoralCommand);
+		NamedCommands.registerCommand("ScoreCoral", scoreCoralCommand);
+		NamedCommands.registerCommand("ElevatorL1", setElevatorL1Command);
+		NamedCommands.registerCommand("ElevatorL2", setElevatorL2Command);
+		NamedCommands.registerCommand("ElevatorL3", setElevatorL3Command);
+		NamedCommands.registerCommand("ElevatorL4", setElevatorL4Command);
+		NamedCommands.registerCommand("RaiseElevator", elevator.getMoveToAndHoldCommand());
 	}
 
 	/**
@@ -282,14 +294,11 @@ public class RobotContainer {
 			.onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
 		// Operator target coral scoring level selection bindings.
-		operatorController.a()
-			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1)));
-		operatorController.b()
-			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2)));
-		operatorController.x()
-			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3)));
-		operatorController.y()
-			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4)));
+
+		operatorController.a().runOnce(setElevatorL1Command);
+		operatorController.b().runOnce(setElevatorL2Command);
+		operatorController.x().runOnce(setElevatorL3Command);
+		operatorController.y().runOnce(setElevatorL4Command);
 
 		// Operator bindings for elevator nudges.
 		operatorController.rightTrigger().whileTrue(elevator.nudgeUpCommand());

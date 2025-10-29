@@ -57,6 +57,7 @@ public class Robot extends TimedRobot {
 
         // Print the drivetrain's pose estimate 
         robotContainer.displayPoseEstimate();
+        robotContainer.addVisionMeasurement();
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

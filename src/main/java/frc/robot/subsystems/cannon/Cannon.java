@@ -147,5 +147,8 @@ public class Cannon extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Cannon / Left Stator Current", this.leftsideWheels.getStatorCurrent());
         SmartDashboard.putNumber("Cannon / Right Stator Current", this.rightsideWheels.getStatorCurrent());
+        SmartDashboard.putBoolean("Cannon / Intake Stall Detected",
+                this.intakeStallDetection.calculate(
+                        Math.abs(this.rightsideWheels.getStatorCurrent()) > CannonConstants.INTAKE_STALL_THRESHOLD_AMPS));
     }
 }

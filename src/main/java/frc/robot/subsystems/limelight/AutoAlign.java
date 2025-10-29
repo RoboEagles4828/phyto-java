@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
@@ -68,7 +69,7 @@ public class AutoAlign extends SequentialCommandGroup {
         addCommands(
             new InstantCommand(() -> drivetrain.applyRequest(() -> idle)),
             new WaitCommand(0.20),
-            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain, limelight)),
+            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain, limelight)).withTimeout(10),
             new InstantCommand(() -> drivetrain.applyRequest(() -> idle))
         );
     }
@@ -80,7 +81,7 @@ public class AutoAlign extends SequentialCommandGroup {
 
             Pose3d aprilTagPos = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();
             Pose2d targetPos = aprilTagPos.transformBy(tagToTarget).toPose2d();
-
+            System.out.println("");
             return AutoBuilder.pathfindToPose(
                 targetPos,
                 new PathConstraints(

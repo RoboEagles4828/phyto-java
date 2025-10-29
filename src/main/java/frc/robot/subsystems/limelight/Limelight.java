@@ -1,5 +1,13 @@
 package frc.robot.subsystems.limelight;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
@@ -69,6 +77,38 @@ public class Limelight extends SubsystemBase {
         if (mt1 != null) {
             SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
             SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
+        }
+
+        if (hasTarget() && acceptLimelightUpdate()) {
+            // if (targetRight) {
+                var tagToTargetRight = new Transform3d(
+                    new Translation3d(
+                        LimelightConstants.ROBOT_OFFSET_METERS,
+                        LimelightConstants.REEF_RIGHT_OFFSET,
+                        0
+                    ),
+                    new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
+                );
+            // } else {
+                var tagToTargetLeft = new Transform3d(
+                    new Translation3d(
+                        LimelightConstants.ROBOT_OFFSET_METERS,
+                        LimelightConstants.REEF_LEFT_OFFSET,
+                        0
+                    ),
+                    new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
+                );
+            // }
+            
+            int tagID = getCurrentTagID();
+
+            Pose3d aprilTagPos = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();
+            Pose2d targetPosRight = aprilTagPos.transformBy(tagToTargetRight).toPose2d();
+            Pose2d targetPosLeft = aprilTagPos.transformBy(tagToTargetLeft).toPose2d();
+
+            SmartDashboard.putString("Right Target Pose", targetPosRight.toString());
+            SmartDashboard.putString("Left Target Pose", targetPosLeft.toString());
+
         }
     }
 }

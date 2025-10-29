@@ -26,7 +26,7 @@ public class LimelightConstants {
     public static final double ROBOT_ROTATION = Math.PI;
 
     // max velocity in meters per second
-    public static final double AUTOALIGN_MAX_VELOCITY = 3.5;
+    public static final double AUTOALIGN_MAX_VELOCITY = 2.0;
     // max acceleration in meters per second squared
     public static final double AUTOALIGN_MAX_ACCELERATION = 2.5;
     // max angular velocity in radians per second

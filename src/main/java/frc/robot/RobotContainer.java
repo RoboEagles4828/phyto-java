@@ -72,7 +72,7 @@ public class RobotContainer {
 	private final Limelight limelight = new Limelight();
 	
 	/** Command to score coral */
-	private final Command scoreCoralComamnd = new InstantCommand(() -> CoralState.setCurrentState(CoralState.SCORE));
+	private final Command scoreCoralCommand = new InstantCommand(() -> CoralState.setCurrentState(CoralState.SCORE));
 
 	/* ======================= */
 	/* CTRE SWERVE NECESSITIES */
@@ -259,7 +259,7 @@ public class RobotContainer {
 
 		// Driver score (coral or algae) binding.
 		// Note that the driver should treat the left bumper like a while held in all cases.
-		driverController.leftBumper().whileTrue(scoreCoralComamnd);
+		driverController.leftBumper().whileTrue(scoreCoralCommand);
 
 		// Driver controller algae scoring level selection bindings.
 		// driverController.b()

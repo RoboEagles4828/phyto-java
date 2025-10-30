@@ -79,36 +79,36 @@ public class Limelight extends SubsystemBase {
             SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
         }
 
-        if (hasTarget() && acceptLimelightUpdate()) {
-            // if (targetRight) {
-                var tagToTargetRight = new Transform3d(
-                    new Translation3d(
-                        LimelightConstants.ROBOT_OFFSET_METERS,
-                        LimelightConstants.REEF_RIGHT_OFFSET,
-                        0
-                    ),
-                    new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
-                );
-            // } else {
-                var tagToTargetLeft = new Transform3d(
-                    new Translation3d(
-                        LimelightConstants.ROBOT_OFFSET_METERS,
-                        LimelightConstants.REEF_LEFT_OFFSET,
-                        0
-                    ),
-                    new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
-                );
-            // }
+    //     if (hasTarget() && acceptLimelightUpdate()) {
+    //         // if (targetRight) {
+    //             var tagToTargetRight = new Transform3d(
+    //                 new Translation3d(
+    //                     LimelightConstants.ROBOT_OFFSET_METERS,
+    //                     LimelightConstants.REEF_RIGHT_OFFSET,
+    //                     0
+    //                 ),
+    //                 new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
+    //             );
+    //         // } else {
+    //             var tagToTargetLeft = new Transform3d(
+    //                 new Translation3d(
+    //                     LimelightConstants.ROBOT_OFFSET_METERS,
+    //                     LimelightConstants.REEF_LEFT_OFFSET,
+    //                     0
+    //                 ),
+    //                 new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
+    //             );
+    //         // }
             
-            int tagID = getCurrentTagID();
+    //         int tagID = getCurrentTagID();
 
-            Pose3d aprilTagPos = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();
-            Pose2d targetPosRight = aprilTagPos.transformBy(tagToTargetRight).toPose2d();
-            Pose2d targetPosLeft = aprilTagPos.transformBy(tagToTargetLeft).toPose2d();
+    //         Pose3d aprilTagPos = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();
+    //         Pose2d targetPosRight = aprilTagPos.transformBy(tagToTargetRight).toPose2d();
+    //         Pose2d targetPosLeft = aprilTagPos.transformBy(tagToTargetLeft).toPose2d();
 
-            SmartDashboard.putString("Right Target Pose", targetPosRight.toString());
-            SmartDashboard.putString("Left Target Pose", targetPosLeft.toString());
+    //         SmartDashboard.putString("Right Target Pose", targetPosRight.toString());
+    //         SmartDashboard.putString("Left Target Pose", targetPosLeft.toString());
 
-        }
+    //     }
     }
 }

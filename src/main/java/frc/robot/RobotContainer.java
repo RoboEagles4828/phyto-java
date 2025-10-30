@@ -78,9 +78,9 @@ public class RobotContainer {
 	private final Command setElevatorL4Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4));
 
 	private final Command scoreCoralCommand = new InstantCommand(() -> {
-		if (elevator.isMovingToAndHoldingLevel()) {
-			CoralState.setCurrentState(CoralState.SCORE);
-		}
+		//if (elevator.isMovingToAndHoldingLevel()) {
+		CoralState.setCurrentState(CoralState.SCORE);
+		//}
 	});
 
 	/* ======================= */
@@ -127,6 +127,13 @@ public class RobotContainer {
 
 	/** The container for the robot. Contains subsystems, OI devices, and commands. */
 	public RobotContainer() {
+		NamedCommands.registerCommand("ScoreCoral", scoreCoralCommand);
+		NamedCommands.registerCommand("ElevatorL1", setElevatorL1Command);
+		NamedCommands.registerCommand("ElevatorL2", setElevatorL2Command);
+		NamedCommands.registerCommand("ElevatorL3", setElevatorL3Command);
+		NamedCommands.registerCommand("ElevatorL4", setElevatorL4Command);
+		NamedCommands.registerCommand("RaiseElevator", elevator.getMoveToAndHoldCommand());
+		
 		autoChooser = AutoBuilder.buildAutoChooser();
 		// Add simple autos to chooser.
 		this.autoChooser.addOption("Do Nothing", SimpleAutos.doNothing());
@@ -135,12 +142,6 @@ public class RobotContainer {
 
 		// Configure the trigger bindings
 		configureBindings();
-		NamedCommands.registerCommand("ScoreCoral", scoreCoralCommand);
-		NamedCommands.registerCommand("ElevatorL1", setElevatorL1Command);
-		NamedCommands.registerCommand("ElevatorL2", setElevatorL2Command);
-		NamedCommands.registerCommand("ElevatorL3", setElevatorL3Command);
-		NamedCommands.registerCommand("ElevatorL4", setElevatorL4Command);
-		NamedCommands.registerCommand("RaiseElevator", elevator.getMoveToAndHoldCommand());
 	}
 
 	/**

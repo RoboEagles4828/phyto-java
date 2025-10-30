@@ -88,29 +88,23 @@ public class RobotContainer {
 	/* ======================= */
 	
 	// TODO these constants should be in swerve constants folder, not in RobotContainer
-	// kSpeedAt12Volts desired top speed in m/s
-	private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);	
-	// 3/4 of a rotation per second max angular velocity in rad/s (=42.97183 deg/s)
-	private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
-	// max speed for manual alignment
-	private double MaxAlignmentSpeed = (MetersPerSecond.of(1)).in(MetersPerSecond);
 
 	// Setting elevator levels for various scoring/intake positions
 
 	// Setting up bindings for necessary control of the swerve drive platform
 	private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-		.withDeadband(MaxSpeed * 0.1) // Add a 10% deadband
-		.withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+		.withDeadband(TunerConstants.MaxSpeed * 0.1) // Add a 10% deadband
+		.withRotationalDeadband(TunerConstants.MaxAngularRate * 0.1) // Add a 10% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 	private final SwerveRequest.RobotCentric driveRR = new SwerveRequest.RobotCentric()
-		.withDeadband(MaxAlignmentSpeed * 0.1) // Add a 10% deadband
-		.withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+		.withDeadband(TunerConstants.MaxAlignmentSpeed * 0.1) // Add a 10% deadband
+		.withRotationalDeadband(TunerConstants.MaxAngularRate * 0.1) // Add a 10% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 	private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
 	/** Logs swerve data through SignalLogger for sysID  */
-	private final Telemetry logger = new Telemetry(MaxSpeed);
+	private final Telemetry logger = new Telemetry(TunerConstants.MaxSpeed);
 
 
 	/* =========== */
@@ -161,9 +155,9 @@ public class RobotContainer {
 			// Drive left with negative X (left joystick left)
 			// Drive counterclockwise with negative X (right joystick left)
 			drivetrain.applyRequest(() -> drive
-				.withVelocityX(-driverController.getLeftY() * MaxSpeed)
-				.withVelocityY(-driverController.getLeftX() * MaxSpeed)
-				.withRotationalRate(-driverController.getRightX() * MaxAngularRate)
+				.withVelocityX(-driverController.getLeftY() * TunerConstants.MaxSpeed)
+				.withVelocityY(-driverController.getLeftX() * TunerConstants.MaxSpeed)
+				.withRotationalRate(-driverController.getRightX() * TunerConstants.MaxAngularRate)
 			)
 		);
 
@@ -205,9 +199,9 @@ public class RobotContainer {
 		// TODO test if the repeat command needs to be added for it to work
 		driverController.a().whileTrue( // new RepeatCommand(
 			drivetrain.applyRequest(() -> driveRR
-				.withVelocityX(-driverController.getLeftY() * MaxAlignmentSpeed * 0.5)
-				.withVelocityY(-driverController.getLeftX() * MaxAlignmentSpeed * 0.5)
-				.withRotationalRate(-driverController.getRightX() * MaxAlignmentSpeed * 0.5)
+				.withVelocityX(-driverController.getLeftY() * TunerConstants.MaxAlignmentSpeed * 0.5)
+				.withVelocityY(-driverController.getLeftX() * TunerConstants.MaxAlignmentSpeed * 0.5)
+				.withRotationalRate(-driverController.getRightX() * TunerConstants.MaxAlignmentSpeed * 0.5)
 			) // )
 		);			
 			
@@ -215,26 +209,26 @@ public class RobotContainer {
 		// Drive straight forward slowly
 		driverController.povUp().whileTrue(
 			drivetrain.applyRequest(() -> driveRR
-				.withVelocityX(0.1 * MaxSpeed)
+				.withVelocityX(0.1 * TunerConstants.MaxSpeed)
 				.withVelocityY(0.0)
 				.withRotationalRate(0.0)));
 		// Drive straight backward slowly
 		driverController.povDown().whileTrue(
 			drivetrain.applyRequest(() -> driveRR
-				.withVelocityX(-0.1 * MaxSpeed)
+				.withVelocityX(-0.1 * TunerConstants.MaxSpeed)
 				.withVelocityY(0.0)
 				.withRotationalRate(0.0)));
 		// Drive straight right slowly
 		driverController.povRight().whileTrue(
 			drivetrain.applyRequest(() -> driveRR
 				.withVelocityX(0.0)
-				.withVelocityY(-0.1 * MaxSpeed)
+				.withVelocityY(-0.1 * TunerConstants.MaxSpeed)
 				.withRotationalRate(0)));
 		// Drive straight left slowly
 		driverController.povLeft().whileTrue(
 			drivetrain.applyRequest(() -> driveRR
 				.withVelocityX(0.0)
-				.withVelocityY(0.1 * MaxSpeed)
+				.withVelocityY(0.1 * TunerConstants.MaxSpeed)
 				.withRotationalRate(0)));
 
 		// Intake button binding. Rumble only happens on normal (not interrupted by button release) completion.

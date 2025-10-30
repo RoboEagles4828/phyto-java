@@ -82,6 +82,12 @@ public class TunerConstants {
     // Theoretical free speed (m/s) at 12 V applied output;
     // This needs to be tuned to your individual robot
     public static final LinearVelocity kSpeedAt12Volts = MetersPerSecond.of(4.73);
+    // kSpeedAt12Volts desired top speed in m/s
+	public static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);	
+	// 3/4 of a rotation per second max angular velocity in rad/s (=42.97183 deg/s)
+	public static final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+	// max speed for manual alignment
+	public static final double MaxAlignmentSpeed = (MetersPerSecond.of(1)).in(MetersPerSecond);
 
     // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
     // This may need to be tuned to your individual robot

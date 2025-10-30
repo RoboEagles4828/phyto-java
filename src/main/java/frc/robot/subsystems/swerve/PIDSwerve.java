@@ -1,8 +1,6 @@
 
 package frc.robot.subsystems.swerve;
 
-import javax.naming.OperationNotSupportedException;
-
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -14,7 +12,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
@@ -23,8 +20,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.game.CoralLevel;
+import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
-import frc.robot.game.ElevatedLevelTracker;
 import frc.robot.subsystems.limelight.Limelight;
 import frc.robot.subsystems.limelight.LimelightConstants;
 
@@ -45,6 +42,7 @@ public class PIDSwerve extends Command {
     private Pose2d currentPose;
     private Pose2d reefScoringPose;
     private Pose2d targetPose;
+    /** The distance from the target position. */
     private double distance;
     private double rotationError;
 
@@ -61,20 +59,16 @@ public class PIDSwerve extends Command {
         translationController = new ProfiledPIDController(5, 0, 0, new Constraints(
             LimelightConstants.AUTOALIGN_MAX_VELOCITY, LimelightConstants.AUTOALIGN_MAX_ACCELERATION));
         translationController.setTolerance(Units.inchesToMeters(0.125));
+
         rotationController = new ProfiledPIDController(5, 0, 0, new Constraints(
             LimelightConstants.AUTOALIGN_MAX_ANGULAR_VELOCITY, LimelightConstants.AUTOALIGN_MAX_ANGULAR_ACCELERATION));
         rotationController.setTolerance(Units.degreesToRadians(0.50));
+        rotationController.enableContinuousInput(-Math.PI, Math.PI);
         
         this.isScoringLeft = isScoringLeft;
 
         addRequirements(drivetrain);
     }
-
-    public double getScoringPositionOffset(boolean isScoringLeft) {
-        // return (isScoringLeft) ? LimelightConstants.REEF_LEFT_OFFSET_PID :  LimelightConstants.REEF_RIGHT_OFFSET_PID;
-        return (isScoringLeft) ? 0.33 / 2.0 :  -0.33 / 2.0;
-    }
-
 
     @Override
     public void initialize(){
@@ -88,7 +82,9 @@ public class PIDSwerve extends Command {
         offset = getScoringPositionOffset(isScoringLeft);
 
         int tagID = limelight.getCurrentTagID();
-        reefScoringPose = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get().toPose2d().plus(new Transform2d(LimelightConstants.ROBOT_OFFSET_METERS, offset, new Rotation2d(Math.PI)));
+        reefScoringPose = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get().toPose2d()
+            .plus(new Transform2d(LimelightConstants.ROBOT_OFFSET_METERS, offset, new Rotation2d(LimelightConstants.ROBOT_ROTATION)));
+        
         currentPose = drivetrain.getState().Pose;
 
         SmartDashboard.putString("target pos", reefScoringPose.toString());
@@ -101,8 +97,6 @@ public class PIDSwerve extends Command {
             ),
             reefScoringPose.getTranslation().minus(currentPose.getTranslation()));
 
-        rotationController.enableContinuousInput(-Math.PI, Math.PI);
-
         distance = currentPose.getTranslation().getDistance(reefScoringPose.getTranslation());
         translationController.reset(distance, velocity);
 
@@ -111,7 +105,7 @@ public class PIDSwerve extends Command {
 
         canAlign = (
             currentPose.getTranslation().getDistance(reefScoringPose.getTranslation()) >= 0.5 || 
-            ElevatedLevel.TRACKER.getCurrentLevel() == CoralLevel.L4);
+            CoralState.getCurrentState() == CoralState.PREPARE_TO_SCORE);
         // if(canAlign) {
             targetPose = reefScoringPose;
         // }
@@ -126,11 +120,11 @@ public class PIDSwerve extends Command {
         distance = currentPose.getTranslation().getDistance(targetPose.getTranslation());
 
         translationController.reset(distance, translationController.getSetpoint().velocity);
-
         rotationError = MathUtil.angleModulus(currentPose.getRotation().getRadians() - targetPose.getRotation().getRadians());
 
         double rotationPIDOutput = rotationController.calculate(
-            MathUtil.angleModulus(currentPose.getRotation().getRadians()), targetPose.getRotation().getRadians());
+            MathUtil.angleModulus(currentPose.getRotation().getRadians()),
+            targetPose.getRotation().getRadians());
         double omega = rotationController.getSetpoint().velocity + rotationPIDOutput;
         
         double scalar =  scalar(distance);
@@ -149,8 +143,8 @@ public class PIDSwerve extends Command {
             canAlign = true;
         }
 
-        LimelightConstants.isAligned = finishedAligning() && canAlign;
-        LimelightConstants.inScoringDistance = inScoringDistance() && canAlign;
+        LimelightConstants.isAligned = finishedAligning(); // && canAlign;
+        LimelightConstants.inScoringDistance = inScoringDistance(); // && canAlign;
     }
 
     @Override
@@ -161,12 +155,16 @@ public class PIDSwerve extends Command {
             .withRotationalRate(0));
     }
 
+    public double getScoringPositionOffset(boolean isScoringLeft) {
+        return (isScoringLeft) ? LimelightConstants.REEF_LEFT_OFFSET_PID :  LimelightConstants.REEF_RIGHT_OFFSET_PID;
+    }
+
     public boolean finishedAligning() {
         return (distance < Units.inchesToMeters(1.5)) && (Math.abs(rotationError) < Units.degreesToRadians(2.5));
     }
 
     public boolean inScoringDistance() {
-        return (distance < 0.4);
+        return (distance < 0.3);
     }
 
     private double projection(Translation2d v1, Translation2d onto){

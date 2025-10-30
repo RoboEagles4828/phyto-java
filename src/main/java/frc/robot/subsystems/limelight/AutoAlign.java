@@ -82,7 +82,7 @@ public class AutoAlign extends SequentialCommandGroup {
         addCommands(
             new InstantCommand(() -> drivetrain.applyRequest(() -> idle)),
             new WaitCommand(0.20),
-            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain, limelight)).until(() -> LimelightConstants.isAligned).withTimeout(4),
+            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain, limelight)).until(() -> LimelightConstants.isAligned).withTimeout(LimelightConstants.PID_AUTO_ALIGN_TIMEOUT),
             new InstantCommand(() -> drivetrain.applyRequest(() -> idle))
         );
     }

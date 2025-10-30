@@ -13,7 +13,25 @@
         {
           "type": "named",
           "data": {
-            "name": null
+            "name": "ElevatorL2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "RaiseElevator"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": []
           }
         }
       ]

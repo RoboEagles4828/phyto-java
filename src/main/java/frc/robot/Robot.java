@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
+import frc.robot.subsystems.limelight.LimelightConstants;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in the TimedRobot
@@ -58,6 +59,9 @@ public class Robot extends TimedRobot {
         // Print the drivetrain's pose estimate 
         robotContainer.displayPoseEstimate();
         robotContainer.addVisionMeasurement();
+
+        SmartDashboard.putBoolean("is aligned", LimelightConstants.isAligned);
+        SmartDashboard.putBoolean(" in scoring distance", LimelightConstants.inScoringDistance);
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

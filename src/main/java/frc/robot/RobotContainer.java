@@ -173,8 +173,8 @@ public class RobotContainer {
 		// auto align to the reef
 		// TODO make these bindings just povRight/Left without anding with a
 		// TODO consider adding new buttons on the driver controller to accomodate auto align
-		driverController.b().onTrue(new AutoAlign(drivetrain, limelight, true));
-		driverController.x().onTrue(new AutoAlign(drivetrain, limelight, false));
+		driverController.b().onTrue(new AutoAlign(drivetrain, driveRR, limelight, driverController, true, true));
+		driverController.x().onTrue(new AutoAlign(drivetrain, driveRR, limelight, driverController, false, true));
 
 		operatorController.start().onTrue(Commands.runOnce(() -> SignalLogger.start()));
 		operatorController.back().onTrue(Commands.runOnce(() -> SignalLogger.stop()));

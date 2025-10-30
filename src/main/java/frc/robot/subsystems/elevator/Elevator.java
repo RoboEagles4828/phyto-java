@@ -116,7 +116,7 @@ public class Elevator extends SubsystemBase {
     /**
      * @return true if one of the move to and hold level commands is running, and false otherwise.
      */
-    private boolean isMovingToAndHoldingLevel() {
+    public boolean isMovingToAndHoldingLevel() {
         return this.moveToAndHoldCommand.isScheduled() || this.holdPositionPostNudge.isScheduled();
     }
 

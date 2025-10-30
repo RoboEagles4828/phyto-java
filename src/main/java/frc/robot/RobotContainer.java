@@ -72,12 +72,16 @@ public class RobotContainer {
 	private final Limelight limelight = new Limelight();
 	
 	/** Command to score coral */
-	private final Command scoreCoralCommand = new InstantCommand(() -> CoralState.setCurrentState(CoralState.SCORE));
 	private final Command setElevatorL1Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1));
 	private final Command setElevatorL2Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2));
 	private final Command setElevatorL3Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3));
 	private final Command setElevatorL4Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4));
 
+	private final Command scoreCoralCommand = new InstantCommand(() -> {
+		if (elevator.isMovingToAndHoldingLevel()) {
+			CoralState.setCurrentState(CoralState.SCORE);
+		}
+	});
 
 	/* ======================= */
 	/* CTRE SWERVE NECESSITIES */

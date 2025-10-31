@@ -82,8 +82,11 @@ public class AutoAlign extends SequentialCommandGroup {
         addCommands(
             new InstantCommand(() -> drivetrain.applyRequest(() -> idle)),
             new WaitCommand(0.20),
-            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain, limelight)).until(() -> LimelightConstants.isAligned).withTimeout(LimelightConstants.PID_AUTO_ALIGN_TIMEOUT),
-            new InstantCommand(() -> drivetrain.applyRequest(() -> idle))
+            new DeferredCommand(() -> autoAlignCommand(), Set.of(drivetrain, limelight)).until(
+                () -> LimelightConstants.isAligned).withTimeout(LimelightConstants.PID_AUTO_ALIGN_TIMEOUT),
+            new InstantCommand(() -> drivetrain.applyRequest(() -> idle)),
+            new WaitCommand(0.50),
+            new InstantCommand(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))
         );
     }
 
@@ -111,9 +114,7 @@ public class AutoAlign extends SequentialCommandGroup {
             
         } else {
             return new InstantCommand(
-                () -> driverController.setRumble(RumbleType.kBothRumble, 1.0))
-				.andThen(Commands.waitSeconds(0.5))
-				.andThen(new InstantCommand(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0)));
+                () -> driverController.setRumble(RumbleType.kBothRumble, 1.0));
         }
     }
 }

@@ -33,7 +33,7 @@ public class PIDSwerve extends Command {
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private boolean isScoringLeft;
-    private double offset = 0.0;
+    private Transform2d offset = new Transform2d();
 
     private ProfiledPIDController translationController;
     private ProfiledPIDController rotationController;
@@ -82,8 +82,9 @@ public class PIDSwerve extends Command {
         offset = getScoringPositionOffset(isScoringLeft);
 
         int tagID = limelight.getCurrentTagID();
-        reefScoringPose = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get().toPose2d()
-            .plus(new Transform2d(LimelightConstants.ROBOT_OFFSET_METERS, offset, new Rotation2d(LimelightConstants.ROBOT_ROTATION)));
+        reefScoringPose = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get().toPose2d();
+        SmartDashboard.putString("reef scoring pose", reefScoringPose.toString());
+        reefScoringPose = reefScoringPose.plus(offset);
         
         currentPose = drivetrain.getState().Pose;
 
@@ -155,8 +156,12 @@ public class PIDSwerve extends Command {
             .withRotationalRate(0));
     }
 
-    public double getScoringPositionOffset(boolean isScoringLeft) {
-        return (isScoringLeft) ? LimelightConstants.REEF_LEFT_OFFSET_PID :  LimelightConstants.REEF_RIGHT_OFFSET_PID;
+    // public double getScoringPositionOffset(boolean isScoringLeft) {
+    //     return (isScoringLeft) ? LimelightConstants.REEF_LEFT_OFFSET_PID :  LimelightConstants.REEF_RIGHT_OFFSET_PID;
+    // }
+
+    public Transform2d getScoringPositionOffset(boolean isScoringLeft) {
+        return (isScoringLeft) ? LimelightConstants.REEF_LEFT_OFFSET_TRANSFORM : LimelightConstants.REEF_RIGHT_OFFSET_TRANSFORM;
     }
 
     public boolean finishedAligning() {

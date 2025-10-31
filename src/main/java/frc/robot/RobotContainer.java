@@ -14,6 +14,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -384,6 +385,9 @@ public class RobotContainer {
     }
 
 	public void addVisionMeasurement() {
+		if (DriverStation.isAutonomous())
+			return;
+		
         PoseEstimate mt1 = limelight.getLimeLightPoseEstimate();
 		if (mt1 != null){
 			drivetrain.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);

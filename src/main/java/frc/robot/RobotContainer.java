@@ -71,18 +71,6 @@ public class RobotContainer {
 
 	/** The limelight camera used for vision and autoalign. */
 	private final Limelight limelight = new Limelight();
-	
-	/** Command to score coral */
-	private final Command setElevatorL1Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1));
-	private final Command setElevatorL2Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2));
-	private final Command setElevatorL3Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3));
-	private final Command setElevatorL4Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4));
-
-	private final Command scoreCoralCommand = new InstantCommand(() -> {
-		//if (elevator.isMovingToAndHoldingLevel()) {
-		CoralState.setCurrentState(CoralState.SCORE);
-		//}
-	});
 
 	/* ======================= */
 	/* CTRE SWERVE NECESSITIES */
@@ -120,6 +108,21 @@ public class RobotContainer {
 	private final CommandXboxController operatorController = new CommandXboxController(
 			OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
+		
+	private final Command setElevatorL1Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1));
+	private final Command setElevatorL2Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2));
+	private final Command setElevatorL3Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3));
+	private final Command setElevatorL4Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4));
+
+	private final Command scoreCoralCommand = new InstantCommand(() -> {
+		//if (elevator.isMovingToAndHoldingLevel()) {
+		CoralState.setCurrentState(CoralState.SCORE);
+		//}
+	});
+
+	/** Command to score coral */
+	private final Command autoAlignRight = new AutoAlign(drivetrain, driveRR, limelight, driverController, true, true);
+
 	/** The container for the robot. Contains subsystems, OI devices, and commands. */
 	public RobotContainer() {
 		NamedCommands.registerCommand("ScoreCoral", scoreCoralCommand);
@@ -128,6 +131,7 @@ public class RobotContainer {
 		NamedCommands.registerCommand("ElevatorL3", setElevatorL3Command);
 		NamedCommands.registerCommand("ElevatorL4", setElevatorL4Command);
 		NamedCommands.registerCommand("RaiseElevator", elevator.getMoveToAndHoldCommand());
+		NamedCommands.registerCommand("AutoAlignRight", autoAlignRight);
 		
 		autoChooser = AutoBuilder.buildAutoChooser();
 		// Add simple autos to chooser.
@@ -385,7 +389,9 @@ public class RobotContainer {
     }
 
 	public void addVisionMeasurement() {
-		if (DriverStation.isAutonomous())
+		// if using one of the auto routines without auto align, don't use limelight readings
+		String autoRoutineName = getAutonomousCommand().getName();
+		if (DriverStation.isAutonomous() && (autoRoutineName == "CenterOneBlue" || autoRoutineName == "CenterOneRed"))
 			return;
 		
         PoseEstimate mt1 = limelight.getLimeLightPoseEstimate();

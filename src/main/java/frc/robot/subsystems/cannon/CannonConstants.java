@@ -24,9 +24,9 @@ class CannonConstants {
     final static double INTAKE_STALL_THRESHOLD_AMPS = 6.0;
 
     /** Left side duty cycle for straight shot. */
-    final static double LEFT_SCORE_STRAIGHT_DUTY_CYCLE = 0.6;
+    final static double LEFT_SCORE_STRAIGHT_DUTY_CYCLE = 0.8;
     /** Right side duty cycle for straight shot. */
-    final static double RIGHT_SCORE_STRAIGHT_DUTY_CYCLE = 0.6;
+    final static double RIGHT_SCORE_STRAIGHT_DUTY_CYCLE = 0.8;
 
     /** Left side duty cycle for L1 twisted shot. */
     final static double LEFT_SCORE_L1_DUTY_CYCLE = 0.65;

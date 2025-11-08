@@ -391,7 +391,7 @@ public class RobotContainer {
 	public void addVisionMeasurement() {
 		// if using one of the auto routines without auto align, don't use limelight readings
 		String autoRoutineName = getAutonomousCommand().getName();
-		if (DriverStation.isAutonomous() && (autoRoutineName == "CenterOneBlue" || autoRoutineName == "CenterOneRed"))
+		if (DriverStation.isAutonomous()/* && (autoRoutineName == "CenterOneBlue" || autoRoutineName == "CenterOneRed")*/)
 			return;
 		
         PoseEstimate mt1 = limelight.getLimeLightPoseEstimate();

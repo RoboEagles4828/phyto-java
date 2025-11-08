@@ -34,7 +34,7 @@ public class LimelightConstants {
     /** The distance from center of the april tag to the reef pole on the right side in m.
      *  This offset is used in the code that autoaligns using {@link PIDSwerve}.
      */
-    public static final double REEF_RIGHT_OFFSET_PID = Units.inchesToMeters(13);
+    public static final double REEF_RIGHT_OFFSET_PID = Units.inchesToMeters(12.7);
     /** The distance from center of the april tag to the reef pole on the left side in m.
      *  This offset is used in the code that autoaligns using {@link PIDSwerve}.
      */
@@ -49,7 +49,7 @@ public class LimelightConstants {
     public static final Transform2d REEF_LEFT_OFFSET_TRANSFORM = 
         new Transform2d(
             LimelightConstants.ROBOT_OFFSET_METERS,
-            LimelightConstants.REEF_RIGHT_OFFSET_PATHFINDER,
+            LimelightConstants.REEF_LEFT_OFFSET_PATHFINDER, 
             new Rotation2d(LimelightConstants.ROBOT_ROTATION)
         );
 

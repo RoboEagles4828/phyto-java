@@ -275,6 +275,6 @@ public class AlgaeManipulator extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Algae Manipulator / Arm Pivot Stator Current", this.pivot.getStatorCurrent());
+        
     }
 }

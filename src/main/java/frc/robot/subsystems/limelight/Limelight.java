@@ -1,114 +1,81 @@
 package frc.robot.subsystems.limelight;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.LimelightHelpers;
-import frc.robot.LimelightHelpers.PoseEstimate;
+import frc.robot.subsystems.limelight.LimelightHelpers.PoseEstimate;
+import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
 
 public class Limelight extends SubsystemBase {
-    private final String limelightName;
-    private PoseEstimate mt1;
+    
+    private CommandSwerveDrivetrain drivetrain; //< reference to the robot's drivetrain
 
-    public Limelight() {
-        limelightName = LimelightConstants.LIMELIGHT_NAME;
+    private PoseEstimate poseEstimate = null; //< most recent pose estimate from limelight; null if no estimate can be made.
+    private boolean isPoseEstimateAcceptable = false; //< if the current poseEstimate should be used.
+
+    public Limelight(CommandSwerveDrivetrain drivetrain) {
+        this.drivetrain = drivetrain;
     }
 
-    /**
-     * Perform Filtering on camera reading.
-     */
-    public boolean acceptLimelightUpdate() {
+    public boolean isPoseEstimateAcceptable() {
+        return isPoseEstimateAcceptable;
+    }
+
+    public int getCurrentTagID() {
+        return (int) LimelightHelpers.getFiducialID(LimelightConstants.LIMELIGHT_NAME);
+    }
+
+    public boolean hasTarget() {
+        return LimelightHelpers.getTV(LimelightConstants.LIMELIGHT_NAME);
+    }
+
+    // Checks if a pose estimate (limelight reading) is of sufficient quality to be used.
+    final static double AMBIGUITY_THRESHOLD = 0.7; //< Reject the pose if ambiguity is above this.
+    final static double DISTANCE_THRESHOLD = 3.0; //< Reject the pose if distance is above this (meters). 
+    private static boolean verifyPoseEstimate(PoseEstimate pose) {
         // if we don't have an estimate at all, reject
-        if (mt1 == null) {
+        if (pose == null) {
             return false;
         }
 
         // if we see multiple tags, reject
-        if (mt1.tagCount != 1 || mt1.rawFiducials.length != 1) {
+        if (pose.tagCount != 1 || pose.rawFiducials.length != 1) {
             return false;
         }
 
         // If ambiguity is too high, reject
-        if (mt1.rawFiducials[0].ambiguity > .7) {
+        if (pose.rawFiducials[0].ambiguity > AMBIGUITY_THRESHOLD) {
             return false;
         }
 
         // If we're too far from the tag, reject
-        if (mt1.rawFiducials[0].distToCamera > 3) {
+        if (pose.rawFiducials[0].distToCamera > DISTANCE_THRESHOLD) {
             return false;
         }
 
         return true;
     }
 
-    public int getCurrentTagID() {
-        return (int) LimelightHelpers.getFiducialID(limelightName);
-    }
-
-    public boolean hasTarget() {
-        return LimelightHelpers.getTV(limelightName);
-    }
-
-    public PoseEstimate getLimeLightPoseEstimate() {
-        if (!acceptLimelightUpdate()) {
-            return null;
-        }
-        return mt1;
-    }
-
     @Override
     public void periodic() {
-        mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
+        // feed the robot's current rotation to the limelight (required for MegaTag2 algorithm)
+        LimelightHelpers.SetRobotOrientation(LimelightConstants.LIMELIGHT_NAME, drivetrain.getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        
+        // get the latest pose estimate from the drivetrain and check its quality
+        poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LimelightConstants.LIMELIGHT_NAME);
+        isPoseEstimateAcceptable = verifyPoseEstimate(poseEstimate);
 
-        // todo(ben) - feed limelight pose to drive IFF the update is accepted (probably not done in here, but in
-        // robotPeriodic?)
+        // feed vision estimate to the drivetrain, if the reading is good.
+        // todo(ben) - we may wish to ignore readings in auto (this should be removed eventually), leaving this logic in for now.
+		final boolean DISABLE_LIMELIGHT_IN_AUTO = false;
+		if (isPoseEstimateAcceptable && !(DriverStation.isAutonomous() && DISABLE_LIMELIGHT_IN_AUTO)){
+			drivetrain.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+		}
 
-        // Print limelight info to SmartDashboard
-        SmartDashboard.putNumber("Limelight Fiducial ID", getCurrentTagID());
-        SmartDashboard.putBoolean("Limelight Has Target", hasTarget());
-        SmartDashboard.putBoolean("Limelight Update Accepted", acceptLimelightUpdate());
-        if (mt1 != null) {
-            SmartDashboard.putString("Limelight Pose", mt1.pose.toString());
-            SmartDashboard.putNumber("Limelight Timestamp", mt1.timestampSeconds);
-        }
-
-    //     if (hasTarget() && acceptLimelightUpdate()) {
-    //         // if (targetRight) {
-    //             var tagToTargetRight = new Transform3d(
-    //                 new Translation3d(
-    //                     LimelightConstants.ROBOT_OFFSET_METERS,
-    //                     LimelightConstants.REEF_RIGHT_OFFSET,
-    //                     0
-    //                 ),
-    //                 new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
-    //             );
-    //         // } else {
-    //             var tagToTargetLeft = new Transform3d(
-    //                 new Translation3d(
-    //                     LimelightConstants.ROBOT_OFFSET_METERS,
-    //                     LimelightConstants.REEF_LEFT_OFFSET,
-    //                     0
-    //                 ),
-    //                 new Rotation3d(0, 0, LimelightConstants.ROBOT_ROTATION)
-    //             );
-    //         // }
-            
-    //         int tagID = getCurrentTagID();
-
-    //         Pose3d aprilTagPos = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();
-    //         Pose2d targetPosRight = aprilTagPos.transformBy(tagToTargetRight).toPose2d();
-    //         Pose2d targetPosLeft = aprilTagPos.transformBy(tagToTargetLeft).toPose2d();
-
-    //         SmartDashboard.putString("Right Target Pose", targetPosRight.toString());
-    //         SmartDashboard.putString("Left Target Pose", targetPosLeft.toString());
-
-    //     }
+        SmartDashboard.putNumber("LL Tag ID", getCurrentTagID());
+        SmartDashboard.putBoolean("LL Has Target", hasTarget());
+        SmartDashboard.putBoolean("LL Is Pose Estimate Acceptable", isPoseEstimateAcceptable);
+        SmartDashboard.putString("LL Pose Estimate", poseEstimate == null ? "NULL" : poseEstimate.pose.toString());
+        SmartDashboard.putNumber("LL Pose Timestamp", poseEstimate == null ? -1 : poseEstimate.timestampSeconds);
     }
 }

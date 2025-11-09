@@ -92,7 +92,7 @@ public class AutoAlign extends SequentialCommandGroup {
 
 
     public Command autoAlignCommand(){        
-        if (limelight.hasTarget() && limelight.acceptLimelightUpdate()) {
+        if (limelight.hasTarget() && limelight.isPoseEstimateAcceptable()) {
             int tagID = limelight.getCurrentTagID();
 
             Pose3d aprilTagPos = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();

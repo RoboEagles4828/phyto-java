@@ -1,14 +1,16 @@
-//LimelightHelpers v1.11 (REQUIRES LLOS 2025.0 OR LATER)
+//THIS IS A ONE-FILE LIBRARY FILE PROVIDED BY LIMELIGHT.
+//YOU PROBABLY SHOULDN'T MODIFY IT.
 
-package frc.robot;
+//LimelightHelpers v1.11 (REQUIRES LLOS 2025.0 OR LATER)
+package frc.robot.subsystems.limelight;
 
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.TimestampedDoubleArray;
-import frc.robot.LimelightHelpers.LimelightResults;
-import frc.robot.LimelightHelpers.PoseEstimate;
+import frc.robot.subsystems.limelight.LimelightHelpers.LimelightResults;
+import frc.robot.subsystems.limelight.LimelightHelpers.PoseEstimate;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;

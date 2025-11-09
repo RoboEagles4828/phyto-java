@@ -267,12 +267,9 @@ public class Elevator extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putBoolean("Elevator / IsMovingAndHolding", this.isMovingToAndHoldingLevel());
-        SmartDashboard.putNumber("Elevator / Position", this.getPosition());
         SmartDashboard.putBoolean("Elevator / On Target", this.onTarget());
-        SmartDashboard.putNumber("Elevator Motor Voltage", rightMotorLeader.getMotorVoltage().getValueAsDouble());
         SmartDashboard.putBoolean("Elevator Bottom Limit Switch", bottomLimitSwitch.get());
         SmartDashboard.putBoolean("Elevator Top Limit Switch", !topLimitSwitch.get());
-        this.isAtBottom();
+        this.isAtBottom(); //todo (ben) - This is a getter that also changes state. Bad design.
     }
 }

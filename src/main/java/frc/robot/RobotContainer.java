@@ -4,10 +4,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -26,8 +22,6 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.LimelightHelpers.PoseEstimate;
-import frc.robot.commands.SimpleAutos;
 import frc.robot.game.AlgaeLevel;
 import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
@@ -38,48 +32,35 @@ import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.limelight.AutoAlign;
 import frc.robot.subsystems.limelight.Limelight;
+import frc.robot.subsystems.limelight.LimelightHelpers.PoseEstimate;
 import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
 import frc.robot.subsystems.swerve.TunerConstants;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
- * little robot logic should actually be handled in the {@link Robot} periodic methods (other than the scheduler calls).
- * Instead, the structure of the robot (including subsystems, commands, and trigger mappings) should be declared here.
- */
 public class RobotContainer {
-	private final SendableChooser<Command> autoChooser;
-	/* ========== */
-	/* SUBSYSTEMS */
-	/* ========== */
-
-	/** The CTRE swerve drivetrain used to move the chassis. */
+	/* === SUBSYSTEMS === */
+	/** The CTRE swerve drivetrain controls the wheels which drive the chassis. */
 	private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-	/** The hopper used to funnel coral to the coral cannon. */
+	/** The hopper funnels coral to the coral cannon. */
 	@SuppressWarnings("unused")
 	private final Hopper coralHopper = new Hopper();
 
-	/** The coral cannon used for intake and scoring. */
+	/** The coral cannon deposits coral onto the reef for scoring. */
 	@SuppressWarnings("unused")
 	private final Cannon coralCannon = new Cannon();
 
 	/** The algae manipulator is used to remove algae from the reef and score them in the barge. */
 	private final AlgaeManipulator algaeManipulator = new AlgaeManipulator();
 
-	/** The elevator is used to move game piece manipulators between levels. */
+	/** The elevator is used to move game piece manipulators (AlgaeManipulator and Cannon) to various heights. */
 	private final Elevator elevator = new Elevator();
 
-	/** The limelight camera used for vision and autoalign. */
-	private final Limelight limelight = new Limelight();
+	/** The limelight camera used for vision, both pose-estimation and auto-alignment to the reef. */
+	private final Limelight limelight = new Limelight(drivetrain);
 
-	/* ======================= */
-	/* CTRE SWERVE NECESSITIES */
-	/* ======================= */
+	/* === CTRE SWERVE === */
 	
 	// TODO these constants should be in swerve constants folder, not in RobotContainer
-
-	// Setting elevator levels for various scoring/intake positions
-
 	// Setting up bindings for necessary control of the swerve drive platform
 	private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 		.withDeadband(TunerConstants.MaxSpeed * 0.1) // Add a 10% deadband
@@ -89,67 +70,50 @@ public class RobotContainer {
 		.withDeadband(TunerConstants.MaxAlignmentSpeed * 0.1) // Add a 10% deadband
 		.withRotationalDeadband(TunerConstants.MaxAngularRate * 0.1) // Add a 10% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-	private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
 	/** Logs swerve data through SignalLogger for sysID  */
 	private final Telemetry logger = new Telemetry(TunerConstants.MaxSpeed);
 
 
-	/* =========== */
-	/* CONTROLLERS */
-	/* =========== */
-			
+	/* === CONTROLLERS === */
 	/** Controller used primarily for driving the robot around the field. */
-	private final CommandXboxController driverController = new CommandXboxController(
-			OperatorConstants.DRIVER_CONTROLLER_PORT);
+	private final CommandXboxController driverController = new CommandXboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
 
 	/** Controller used primarily for operator game piece manipulation. */
-	private final CommandXboxController operatorController = new CommandXboxController(
-			OperatorConstants.OPERATOR_CONTROLLER_PORT);
-
-		
+	private final CommandXboxController operatorController = new CommandXboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
+	
+	/* === COMMANDS === */
+	// Set the target elevator height to a given level. Note that this does not immediately move the elevator.
 	private final Command setElevatorL1Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1));
 	private final Command setElevatorL2Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2));
 	private final Command setElevatorL3Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3));
 	private final Command setElevatorL4Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4));
 
-	private final Command scoreCoralCommand = new InstantCommand(() -> {
-		//if (elevator.isMovingToAndHoldingLevel()) {
-		CoralState.setCurrentState(CoralState.SCORE);
-		//}
-	});
+	// Attempt to score a Coral onto the Reef (fire a Coral out of the Shooter).
+	private final Command scoreCoralCommand = new InstantCommand(() -> { CoralState.setCurrentState(CoralState.SCORE);});
 
-	/** Command to score coral */
-	private final Command autoAlignRight = new AutoAlign(drivetrain, driveRR, limelight, driverController, true, true);
+	/* === MEMBER VARIABLES === */
+	// Chooser widget which will contain all autonomous routines from PathPlanner and displays on dashboard.
+	private final SendableChooser<Command> autoChooser;
 
-	/** The container for the robot. Contains subsystems, OI devices, and commands. */
+
 	public RobotContainer() {
+		// Register commands with PathPlanner so they may be used in autonomous routines.
 		NamedCommands.registerCommand("ScoreCoral", scoreCoralCommand);
 		NamedCommands.registerCommand("ElevatorL1", setElevatorL1Command);
 		NamedCommands.registerCommand("ElevatorL2", setElevatorL2Command);
 		NamedCommands.registerCommand("ElevatorL3", setElevatorL3Command);
 		NamedCommands.registerCommand("ElevatorL4", setElevatorL4Command);
 		NamedCommands.registerCommand("RaiseElevator", elevator.getMoveToAndHoldCommand());
-		NamedCommands.registerCommand("AutoAlignRight", autoAlignRight);
 		
+		// Create and populate a SendableChooser with the autonomous routines from PathPlanner, and add it to dashboard.
 		autoChooser = AutoBuilder.buildAutoChooser();
-		// Add simple autos to chooser.
-		this.autoChooser.addOption("Do Nothing", SimpleAutos.doNothing());
-		this.autoChooser.setDefaultOption("Move Off Line", SimpleAutos.move(drivetrain, driveRR));
 		SmartDashboard.putData("Auto Chooser", autoChooser);
 
 		// Configure the trigger bindings
 		configureBindings();
 	}
 
-	/**
-	 * Use this method to define your trigger->command mappings. Triggers can be created via the
-	 * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
-	 * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
-	 * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
-	 * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
-	 */
 	private void configureBindings() {
 		// Note that according to WPILib convention,
 		// X is defined as forward
@@ -171,12 +135,6 @@ public class RobotContainer {
 		final var idle = new SwerveRequest.Idle();
 		RobotModeTriggers.disabled().whileTrue(
 			drivetrain.applyRequest(() -> idle).ignoringDisable(true));
-
-		/* Commented out for merge as there are other methods binded to these buttons.
-		driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
-		driverController.b().whileTrue(drivetrain.applyRequest(() ->
-			point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), driverController.getLeftX()))));
-		*/
 
 		// Run SysId routines when holding back/start and X/Y.
 		// Note that each routine should be run exactly once in a single log.
@@ -200,8 +158,6 @@ public class RobotContainer {
 		drivetrain.registerTelemetry(logger::telemeterize);
 
 		// Alternative driving scheme for slow robot-relative driving meant for aligning manually
-		// TODO test that it drives slowly when a is held
-		// TODO test if the repeat command needs to be added for it to work
 		driverController.a().whileTrue( // new RepeatCommand(
 			drivetrain.applyRequest(() -> driveRR
 				.withVelocityX(-driverController.getLeftY() * TunerConstants.MaxAlignmentSpeed * 0.5)
@@ -321,37 +277,6 @@ public class RobotContainer {
 	}
 
 	/**
-	 * The commands V3 framework is coming in 2027. They will be adding the ability to scope triggers to modes (auto,
-	 * teleop, etc) and/or a command (trigger only active while the command is running). For now, we have to scope them
-	 * ourselves, but is not to hard. Isolating the auto only triggers here for ease of maintanence.
-	 * 
-	 * <p>
-	 * What follows is how I think you could use this to get the path auto to score, first just once. And then, maybe
-	 * more in the furture.
-	 * 
-	 * <p>
-	 * This method is not currently called anywhere. If you call if from robot container construction, I believe, to get
-	 * the now working path auto to try to score, you would modify the auto defintion to put the path in a sequential
-	 * group (the root sequence) with the path first and then a named command that just sets the current coral state to
-	 * prepare to score. When prepare to score completes (elevator is on target), the state will transistion to ready to
-	 * score and the trigger defined here will fire.
-	 * 
-	 * <p>
-	 * For multi-coral auto, you add to the root sequence a named commmand that waits until the current state is no
-	 * longer SCORE. That is followed, in the same root sequence, by a parallel group to a path to the human player
-	 * station and a named command to lower the elevator. Then, a named command to transition coral state to intake.
-	 * Then, a named command that waits until coral state is CARRY. These last two could be combined by defining a
-	 * single named command using startEnd (I think).
-	 * 
-	 * <p>
-	 * Next is the path to the second score followed by transition to prepare to score. Rinse and repeat.
-	 */
-	private void configureAutoBindings() {
-		final Trigger autoScoreTrigger = RobotModeTriggers.autonomous().and(CoralState.READY_TO_SCORE.getTrigger());
-		autoScoreTrigger.onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.SCORE)));
-	}
-
-	/**
 	 * If the coral state is still set to "INTAKE" when called, go to the empty state. This is designed for the intake button
 	 * release. If the intake was successful, the state will be carry when we get here and this method will not change
 	 * it. If the intake was unsuccessful, we failed to pick up a coral and thus the state is set to "EMPTY".
@@ -383,20 +308,4 @@ public class RobotContainer {
 	public Command getAutonomousCommand() {
 		return autoChooser.getSelected();
 	}
-
-    public void displayPoseEstimate() {
-		SmartDashboard.putString("Drivetrain Pose Estimate: ", drivetrain.getState().Pose.toString()); 
-    }
-
-	public void addVisionMeasurement() {
-		// if using one of the auto routines without auto align, don't use limelight readings
-		String autoRoutineName = getAutonomousCommand().getName();
-		if (DriverStation.isAutonomous()/* && (autoRoutineName == "CenterOneBlue" || autoRoutineName == "CenterOneRed")*/)
-			return;
-		
-        PoseEstimate mt1 = limelight.getLimeLightPoseEstimate();
-		if (mt1 != null){
-			drivetrain.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
-		}
-    }
 }

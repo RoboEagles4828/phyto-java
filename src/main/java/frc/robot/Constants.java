@@ -13,6 +13,11 @@ import edu.wpi.first.apriltag.AprilTagFields;
  * Do not put anything functional in this class.
  */
 public final class Constants {
+    public static final AprilTagFields APRIL_TAG_FIELD_TYPE = AprilTagFields.k2025ReefscapeAndyMark;
+    public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(APRIL_TAG_FIELD_TYPE);
+
+    public static final double DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER = 0.3556;
+
     /**
      * Constants related to operator interaction devices.
      */

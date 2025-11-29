@@ -1,10 +1,16 @@
 package frc.robot.subsystems.limelight;
 
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.BooleanSubscriber;
+import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -21,14 +27,26 @@ public class Limelight extends SubsystemBase {
     private boolean isPoseEstimateAcceptable = false; //< if the current poseEstimate should be used.
 
     private static final String NT_USE_VISION = "UseVision";
+    private static final String NT_LEFT_X_OFFSET = "LeftXOffset";
+    private static final String NT_LEFT_Y_OFFSET = "LeftYOffset";
+    private static final String NT_RIGHT_X_OFFSET = "RightXOffset";
+    private static final String NT_RIGHT_Y_OFFSET = "RightYOffset";
     private final NetworkTable debugTable = NetworkTableInstance.getDefault().getTable(Constants.NT_DEBUG);
     private final BooleanSubscriber useVisionToggle = debugTable.getBooleanTopic(NT_USE_VISION).subscribe(true);
+    private final DoubleSubscriber leftXOffset = debugTable.getDoubleTopic(NT_LEFT_X_OFFSET).subscribe(0.0);
+    private final DoubleSubscriber leftYOffset = debugTable.getDoubleTopic(NT_LEFT_Y_OFFSET).subscribe(0.0);
+    private final DoubleSubscriber rightXOffset = debugTable.getDoubleTopic(NT_RIGHT_X_OFFSET).subscribe(0.0);
+    private final DoubleSubscriber rightYOffset = debugTable.getDoubleTopic(NT_RIGHT_Y_OFFSET).subscribe(0.0);
 
     public Limelight(CommandSwerveDrivetrain drivetrain, Field2d field) {
         this.drivetrain = drivetrain;
         this.field = field;
 
         debugTable.getBooleanTopic(NT_USE_VISION).publish().setDefault(true);
+        debugTable.getDoubleTopic(NT_LEFT_X_OFFSET).publish().setDefault(0.1651);
+        debugTable.getDoubleTopic(NT_LEFT_Y_OFFSET).publish().setDefault(-0.15);
+        debugTable.getDoubleTopic(NT_RIGHT_X_OFFSET).publish().setDefault(0.1651);
+        debugTable.getDoubleTopic(NT_RIGHT_Y_OFFSET).publish().setDefault(0.15);
     }
 
     public boolean isPoseEstimateAcceptable() {
@@ -70,6 +88,11 @@ public class Limelight extends SubsystemBase {
         return true;
     }
 
+    public double getLeftXOffset() { return leftXOffset.get(); }
+    public double getLeftYOffset() { return leftYOffset.get(); }
+    public double getRightXOffset() { return rightXOffset.get(); }
+    public double getRightYOffset() { return rightYOffset.get(); }
+
     @Override
     public void periodic() {
         // feed the robot's current rotation to the limelight (required for MegaTag2 algorithm)
@@ -85,6 +108,34 @@ public class Limelight extends SubsystemBase {
 		if (isPoseEstimateAcceptable && !(DriverStation.isAutonomous() && DISABLE_LIMELIGHT_IN_AUTO) && useVisionToggle.get()) {
             drivetrain.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
 		}
+
+        if (hasTarget() && getCurrentTagID() != -1) {
+            int tagId = getCurrentTagID();
+
+            Pose2d scoringPoseLeft = Util4828.calculateRobotPoseFromTagId(
+                tagId,
+                leftXOffset.get(),   // front-to-tag distance
+                leftYOffset.get(),
+                Constants.DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER,             // front-to-center distance
+                true            // facing away from tag (adjust as needed)
+            );
+            if (scoringPoseLeft != null)
+                field.getObject("TargetScoringPoseLeft").setPose(scoringPoseLeft);
+
+            Pose2d scoringPoseRight = Util4828.calculateRobotPoseFromTagId(
+                tagId,
+                rightXOffset.get(),   // front-to-tag distance
+                rightYOffset.get(),
+                Constants.DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER,             // front-to-center distance
+                true            // facing away from tag (adjust as needed)
+            );
+            if (scoringPoseRight != null)
+                field.getObject("TargetScoringPoseRight").setPose(scoringPoseRight);  
+        } else {
+            // Clear the previous visualization if no tag is seen
+            //field.getObject("TargetScoringPoseLeft").setPose(new Pose2d(0, 0, new Rotation2d(0)));
+            //field.getObject("TargetScoringPoseRight").setPose(new Pose2d(0, 0, new Rotation2d(0)));
+        }
 
         // Log information to dashboard
         if (poseEstimate != null)

@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
@@ -82,7 +83,7 @@ public class PIDSwerve extends Command {
         offset = getScoringPositionOffset(isScoringLeft);
 
         int tagID = limelight.getCurrentTagID();
-        reefScoringPose = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get().toPose2d();
+        reefScoringPose = Constants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get().toPose2d();
         SmartDashboard.putString("reef scoring pose", reefScoringPose.toString());
         reefScoringPose = reefScoringPose.plus(offset);
         

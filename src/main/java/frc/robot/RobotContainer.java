@@ -34,8 +34,10 @@ import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.limelight.AutoAlign;
 import frc.robot.subsystems.limelight.Limelight;
 import frc.robot.subsystems.limelight.LimelightHelpers.PoseEstimate;
+import frc.robot.subsystems.limelight.PathPlannerAutoAlign;
 import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
 import frc.robot.subsystems.swerve.TunerConstants;
+import frc.robot.util.Util4828;
 
 public class RobotContainer {
 	private final Field2d field = new Field2d();
@@ -112,6 +114,8 @@ public class RobotContainer {
 		SmartDashboard.putData("Auto Chooser", autoChooser);
 
 		SmartDashboard.putData("Field", field);
+
+		Util4828.publishAprilTags(field);
 
 		// Configure the trigger bindings
 		configureBindings();
@@ -261,22 +265,31 @@ public class RobotContainer {
 		operatorController.a().onTrue(setElevatorL1Command);
 		operatorController.b().onTrue(setElevatorL2Command);
 		operatorController.x().onTrue(setElevatorL3Command);
-		operatorController.y().onTrue(setElevatorL4Command);
+		//operatorController.y().onTrue(setElevatorL4Command);
 
 		// Operator bindings for elevator nudges.
 		operatorController.rightTrigger().whileTrue(elevator.nudgeUpCommand());
 		operatorController.leftTrigger().whileTrue(elevator.nudgeDownCommand());
+		
+		// Autoalign triggers
+		operatorController.leftBumper().onTrue(makeLeftAutoAlignCommand());
 
-		// Operator bindings for manual algae manipulator arm movement.
-		// operatorController.povLeft().whileTrue(algaeManipulator.manualDeployArm());
-		// operatorController.povRight().whileTrue(algaeManipulator.manualRetractArm());
-
-		// Operator bindings for manual algae manipulator wheel movement.
-		operatorController.leftBumper().whileTrue(algaeManipulator.manualRemoveAlgaeFromReef());
-		operatorController.rightBumper().whileTrue(algaeManipulator.manualScoreAlgaeIntoBarge());
+		operatorController.rightBumper().onTrue(makeRightAutoAlignCommand());
 		
 		// Operator binding to reset elevator encoder.
 		// operatorController.back().onTrue(elevator.resetElevatorEncoder());
+	}
+
+	private Command makeLeftAutoAlignCommand() {
+		return new PathPlannerAutoAlign(
+			limelight, drivetrain, PathPlannerAutoAlign.Side.LEFT)
+			.withTimeout(5.0);
+	}
+
+	private Command makeRightAutoAlignCommand() {
+		return new PathPlannerAutoAlign(
+			limelight, drivetrain, PathPlannerAutoAlign.Side.RIGHT)
+			.withTimeout(5.0);
 	}
 
 	/**

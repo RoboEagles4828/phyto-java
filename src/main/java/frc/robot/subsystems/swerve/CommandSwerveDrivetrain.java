@@ -19,10 +19,12 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.DoubleSubscriber;
+import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -35,6 +37,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.subsystems.limelight.LimelightConstants;
+import frc.robot.subsystems.limelight.LimelightHelpers;
 import frc.robot.subsystems.swerve.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.util.Util4828;
 
@@ -48,13 +52,24 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final String NT_SEED_Y = "SeedPoseY";
     private static final String NT_SEED_THETA = "SeedPoseTheta";
     private static final String NT_SEED_TRIGGER = "SeedPoseTrigger";
+    /* Network tables fields for more easily seeding pose given tag and distance from tag. */
+    private static final String NT_AUTOSEED_TAG_ID = "AutoSeedTagID";
+    private static final String NT_AUTOSEED_DISTANCE_FT = "AutoSeedDistanceFt";
+    private static final String NT_AUTOSEED_FACE_TAG = "AutoSeedFaceTag";
+    private static final String NT_AUTOSEED_TRIGGER = "AutoSeedPoseTrigger";
+    private static final String NT_AUTOSEED_CALCULATE_TRIGGER = "AutoSeedCalculateTrigger";
 
     private final NetworkTable debugTable = NetworkTableInstance.getDefault().getTable(Constants.NT_DEBUG);
     private final DoubleSubscriber seedX = debugTable.getDoubleTopic(NT_SEED_X).subscribe(0.0);
     private final DoubleSubscriber seedY = debugTable.getDoubleTopic(NT_SEED_Y).subscribe(0.0);
     private final DoubleSubscriber seedTheta = debugTable.getDoubleTopic(NT_SEED_THETA).subscribe(0.0);
     private final BooleanSubscriber seedTrigger = debugTable.getBooleanTopic(NT_SEED_TRIGGER).subscribe(false);
-    
+    private final IntegerSubscriber autoseedTagId = debugTable.getIntegerTopic(NT_AUTOSEED_TAG_ID).subscribe(0);
+    private final DoubleSubscriber autoseedDistanceFt = debugTable.getDoubleTopic(NT_AUTOSEED_DISTANCE_FT).subscribe(0.0);
+    private final BooleanSubscriber autoseedFaceTag = debugTable.getBooleanTopic(NT_AUTOSEED_FACE_TAG).subscribe(true);
+    private final BooleanSubscriber autoseedTrigger = debugTable.getBooleanTopic(NT_AUTOSEED_TRIGGER).subscribe(false);
+    private final BooleanSubscriber autoseedCalculateTrigger = debugTable.getBooleanTopic(NT_AUTOSEED_CALCULATE_TRIGGER).subscribe(false);
+
     private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
@@ -217,6 +232,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         debugTable.getDoubleTopic(NT_SEED_Y).publish().setDefault(0.0);
         debugTable.getDoubleTopic(NT_SEED_THETA).publish().setDefault(0.0);
         debugTable.getBooleanTopic(NT_SEED_TRIGGER).publish().setDefault(false);
+        debugTable.getIntegerTopic(NT_AUTOSEED_TAG_ID).publish().setDefault(20);
+        debugTable.getDoubleTopic(NT_AUTOSEED_DISTANCE_FT).publish().setDefault(4);
+        debugTable.getBooleanTopic(NT_AUTOSEED_FACE_TAG).publish().setDefault(true);
+        debugTable.getBooleanTopic(NT_AUTOSEED_TRIGGER).publish().setDefault(false);
+        debugTable.getBooleanTopic(NT_AUTOSEED_CALCULATE_TRIGGER).publish().setDefault(false);
 
         if (Utils.isSimulation()) {
             startSimThread();
@@ -291,7 +311,54 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             // unset the button
             debugTable.getBooleanTopic(NT_SEED_TRIGGER).publish().set(false);
         }
-        
+        // Automatically calculate and seed the current field position when button is clicked in dashboard
+        if (autoseedTrigger.get()) {
+            int tagId = (int) autoseedTagId.get();
+            double distanceFt = autoseedDistanceFt.get();
+            boolean faceTag = autoseedFaceTag.get();
+
+            // Convert distance from ft to meters
+            double distanceMeters = Units.feetToMeters(distanceFt);
+
+            // Calculate robot pose using helper
+            Pose2d newPose = Util4828.calculateRobotPoseFromTagId(
+                    tagId,
+                    distanceMeters,
+                    0.0,
+                    Constants.DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER,   // robot front-to-center in meters
+                    faceTag
+            );
+
+            // set new pose
+            if (newPose != null) {
+                resetPose(newPose);
+            }
+            
+            // unset the button
+            debugTable.getBooleanTopic(NT_AUTOSEED_TRIGGER).publish().set(false);
+        }
+
+        if (autoseedCalculateTrigger.get()) {
+            int tagId = (int) autoseedTagId.get();
+            double distanceFt = autoseedDistanceFt.get();
+            boolean faceTag = autoseedFaceTag.get();
+
+            // Convert distance from ft to meters
+            double distanceMeters = Units.feetToMeters(distanceFt);
+
+            // Calculate robot pose using helper
+            Pose2d newPose = Util4828.calculateRobotPoseFromTagId(
+                    tagId,
+                    distanceMeters,
+                    0.0,
+                    Constants.DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER,   // robot front-to-center in meters
+                    faceTag
+            );
+
+            SmartDashboard.putString("Autoseed Calculate Result", Util4828.formatPose(newPose));
+            debugTable.getBooleanTopic(NT_AUTOSEED_CALCULATE_TRIGGER).publish().set(false);
+        }
+
         // Log the current pose to the field2d object for dashboard
         m_field.setRobotPose(getState().Pose);
         m_field.getObject("Swerve").setPose(getState().Pose);

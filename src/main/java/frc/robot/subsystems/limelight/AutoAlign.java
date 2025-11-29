@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants;
 import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
 import frc.robot.subsystems.swerve.PIDSwerve;
 import frc.robot.subsystems.swerve.PIDSwerve;
@@ -95,7 +96,7 @@ public class AutoAlign extends SequentialCommandGroup {
         if (limelight.hasTarget() && limelight.isPoseEstimateAcceptable()) {
             int tagID = limelight.getCurrentTagID();
 
-            Pose3d aprilTagPos = LimelightConstants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();
+            Pose3d aprilTagPos = Constants.APRIL_TAG_FIELD_LAYOUT.getTagPose(tagID).get();
             Pose2d targetPos = aprilTagPos.transformBy(tagToTarget).toPose2d();
             
             if (!usePID){

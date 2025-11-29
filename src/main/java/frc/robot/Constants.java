@@ -53,4 +53,7 @@ public final class Constants {
         public static final int ELEVATOR_QUAD_ENCODER_B_CHANNEL = 2;
     }
 
+    // Name of the debug network table, which subsystems may publish values to for debugging purposes.
+    public static final String NT_DEBUG = "Debug";
+
 }

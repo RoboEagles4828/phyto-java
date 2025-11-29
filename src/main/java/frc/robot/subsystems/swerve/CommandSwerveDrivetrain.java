@@ -19,25 +19,48 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.BooleanSubscriber;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.DoubleSubscriber;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants;
 import frc.robot.subsystems.swerve.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.util.Util4828;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
  * Subsystem so it can easily be used in command-based projects.
  */
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
+    /* Network Tables fields for seeding pose manually during testing */
+    private static final String NT_SEED_X = "SeedPoseX";
+    private static final String NT_SEED_Y = "SeedPoseY";
+    private static final String NT_SEED_THETA = "SeedPoseTheta";
+    private static final String NT_SEED_TRIGGER = "SeedPoseTrigger";
+
+    private final NetworkTable debugTable = NetworkTableInstance.getDefault().getTable(Constants.NT_DEBUG);
+    private final DoubleSubscriber seedX = debugTable.getDoubleTopic(NT_SEED_X).subscribe(0.0);
+    private final DoubleSubscriber seedY = debugTable.getDoubleTopic(NT_SEED_Y).subscribe(0.0);
+    private final DoubleSubscriber seedTheta = debugTable.getDoubleTopic(NT_SEED_THETA).subscribe(0.0);
+    private final BooleanSubscriber seedTrigger = debugTable.getBooleanTopic(NT_SEED_TRIGGER).subscribe(false);
+    
     private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+
+    private Field2d m_field;
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
@@ -125,13 +148,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     public CommandSwerveDrivetrain(
         SwerveDrivetrainConstants drivetrainConstants,
+        Field2d field,
         SwerveModuleConstants<?, ?, ?>... modules
     ) {
         super(drivetrainConstants, modules);
-        if (Utils.isSimulation()) {
-            startSimThread();
-        }
-        configureAutoBuilder();
+        init(field);
     }
 
     /**
@@ -150,13 +171,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public CommandSwerveDrivetrain(
         SwerveDrivetrainConstants drivetrainConstants,
         double odometryUpdateFrequency,
+        Field2d field,
         SwerveModuleConstants<?, ?, ?>... modules
     ) {
         super(drivetrainConstants, odometryUpdateFrequency, modules);
-        if (Utils.isSimulation()) {
-            startSimThread();
-        }
-        configureAutoBuilder();
+        init(field);
     }
 
     /**
@@ -183,12 +202,26 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         double odometryUpdateFrequency,
         Matrix<N3, N1> odometryStandardDeviation,
         Matrix<N3, N1> visionStandardDeviation,
+        Field2d field,
         SwerveModuleConstants<?, ?, ?>... modules
     ) {
         super(drivetrainConstants, odometryUpdateFrequency, odometryStandardDeviation, visionStandardDeviation, modules);
+        init(field);
+    }
+
+    private void init(Field2d field) {
+        m_field = field;
+
+        // set default debug network tables values
+        debugTable.getDoubleTopic(NT_SEED_X).publish().setDefault(0.0);
+        debugTable.getDoubleTopic(NT_SEED_Y).publish().setDefault(0.0);
+        debugTable.getDoubleTopic(NT_SEED_THETA).publish().setDefault(0.0);
+        debugTable.getBooleanTopic(NT_SEED_TRIGGER).publish().setDefault(false);
+
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        
         configureAutoBuilder();
     }
 
@@ -244,8 +277,27 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        // Log the swerve's current pose estimate
-        SmartDashboard.putString("Drivetrain Pose Estimate: ", getState().Pose.toString()); 
+        // Seed the current field position when button is clicked in dashboard; for testing
+        if (seedTrigger.get()) {
+            Pose2d seedPose = new Pose2d(
+                seedX.get(),
+                seedY.get(),
+                Rotation2d.fromDegrees(seedTheta.get())
+            );
+            
+            // set the pose to the values in NetworkTables
+            resetPose(seedPose);
+
+            // unset the button
+            debugTable.getBooleanTopic(NT_SEED_TRIGGER).publish().set(false);
+        }
+        
+        // Log the current pose to the field2d object for dashboard
+        m_field.setRobotPose(getState().Pose);
+        m_field.getObject("Swerve").setPose(getState().Pose);
+
+        // Log the swerve's current pose as a string to dashboard
+        SmartDashboard.putString("Swerve Pose: ", Util4828.formatPose(getState().Pose)); 
     }
 
     private void startSimThread() {

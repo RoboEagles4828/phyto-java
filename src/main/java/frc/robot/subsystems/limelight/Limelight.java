@@ -1,20 +1,34 @@
 package frc.robot.subsystems.limelight;
 
+import edu.wpi.first.networktables.BooleanSubscriber;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.limelight.LimelightHelpers.PoseEstimate;
 import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
+import frc.robot.util.Util4828;
 
 public class Limelight extends SubsystemBase {
     
     private CommandSwerveDrivetrain drivetrain; //< reference to the robot's drivetrain
+    private Field2d field;
 
     private PoseEstimate poseEstimate = null; //< most recent pose estimate from limelight; null if no estimate can be made.
     private boolean isPoseEstimateAcceptable = false; //< if the current poseEstimate should be used.
 
-    public Limelight(CommandSwerveDrivetrain drivetrain) {
+    private static final String NT_USE_VISION = "UseVision";
+    private final NetworkTable debugTable = NetworkTableInstance.getDefault().getTable(Constants.NT_DEBUG);
+    private final BooleanSubscriber useVisionToggle = debugTable.getBooleanTopic(NT_USE_VISION).subscribe(true);
+
+    public Limelight(CommandSwerveDrivetrain drivetrain, Field2d field) {
         this.drivetrain = drivetrain;
+        this.field = field;
+
+        debugTable.getBooleanTopic(NT_USE_VISION).publish().setDefault(true);
     }
 
     public boolean isPoseEstimateAcceptable() {
@@ -61,21 +75,33 @@ public class Limelight extends SubsystemBase {
         // feed the robot's current rotation to the limelight (required for MegaTag2 algorithm)
         LimelightHelpers.SetRobotOrientation(LimelightConstants.LIMELIGHT_NAME, drivetrain.getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
         
-        // get the latest pose estimate from the drivetrain and check its quality
+        // get the latest pose estimate (using MegaTag2) from the drivetrain and check its quality
         poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LimelightConstants.LIMELIGHT_NAME);
         isPoseEstimateAcceptable = verifyPoseEstimate(poseEstimate);
-
+        
         // feed vision estimate to the drivetrain, if the reading is good.
         // todo(ben) - we may wish to ignore readings in auto (this should be removed eventually), leaving this logic in for now.
 		final boolean DISABLE_LIMELIGHT_IN_AUTO = false;
-		if (isPoseEstimateAcceptable && !(DriverStation.isAutonomous() && DISABLE_LIMELIGHT_IN_AUTO)){
-			drivetrain.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+		if (isPoseEstimateAcceptable && !(DriverStation.isAutonomous() && DISABLE_LIMELIGHT_IN_AUTO) && useVisionToggle.get()) {
+            drivetrain.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
 		}
 
+        // Log information to dashboard
+        if (poseEstimate != null)
+            field.getObject("LL").setPose(poseEstimate.pose);
+        
+        // Also log MT1 pose for testing purposes
+        PoseEstimate mt1Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(LimelightConstants.LIMELIGHT_NAME);
+        if (mt1Estimate != null) {
+            field.getObject("MegaTag1").setPose(mt1Estimate.pose);
+        }
+        SmartDashboard.putString("MegaTag1 Pose", mt1Estimate ==  null ? "NULL" : Util4828.formatPose(mt1Estimate.pose));
+        
         SmartDashboard.putNumber("LL Tag ID", getCurrentTagID());
         SmartDashboard.putBoolean("LL Has Target", hasTarget());
-        SmartDashboard.putBoolean("LL Is Pose Estimate Acceptable", isPoseEstimateAcceptable);
-        SmartDashboard.putString("LL Pose Estimate", poseEstimate == null ? "NULL" : poseEstimate.pose.toString());
-        SmartDashboard.putNumber("LL Pose Timestamp", poseEstimate == null ? -1 : poseEstimate.timestampSeconds);
+        SmartDashboard.putBoolean("LL Is Pose Acceptable", isPoseEstimateAcceptable);
+        SmartDashboard.putBoolean("LL Publishing Vision", isPoseEstimateAcceptable && useVisionToggle.get());
+        SmartDashboard.putString("LL Pose (MT2)", poseEstimate == null ? "NULL" : Util4828.formatPose(poseEstimate.pose));
+        SmartDashboard.putNumber("LL Timestamp", poseEstimate == null ? -1 : poseEstimate.timestampSeconds);
     }
 }

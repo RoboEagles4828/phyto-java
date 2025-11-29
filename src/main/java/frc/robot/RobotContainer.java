@@ -12,6 +12,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,9 +38,11 @@ import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
 import frc.robot.subsystems.swerve.TunerConstants;
 
 public class RobotContainer {
+	private final Field2d field = new Field2d();
+
 	/* === SUBSYSTEMS === */
 	/** The CTRE swerve drivetrain controls the wheels which drive the chassis. */
-	private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+	private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain(field);
 
 	/** The hopper funnels coral to the coral cannon. */
 	@SuppressWarnings("unused")
@@ -56,10 +59,9 @@ public class RobotContainer {
 	private final Elevator elevator = new Elevator();
 
 	/** The limelight camera used for vision, both pose-estimation and auto-alignment to the reef. */
-	private final Limelight limelight = new Limelight(drivetrain);
+	private final Limelight limelight = new Limelight(drivetrain, field);
 
 	/* === CTRE SWERVE === */
-	
 	// TODO these constants should be in swerve constants folder, not in RobotContainer
 	// Setting up bindings for necessary control of the swerve drive platform
 	private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -73,7 +75,6 @@ public class RobotContainer {
 
 	/** Logs swerve data through SignalLogger for sysID  */
 	private final Telemetry logger = new Telemetry(TunerConstants.MaxSpeed);
-
 
 	/* === CONTROLLERS === */
 	/** Controller used primarily for driving the robot around the field. */
@@ -109,6 +110,8 @@ public class RobotContainer {
 		// Create and populate a SendableChooser with the autonomous routines from PathPlanner, and add it to dashboard.
 		autoChooser = AutoBuilder.buildAutoChooser();
 		SmartDashboard.putData("Auto Chooser", autoChooser);
+
+		SmartDashboard.putData("Field", field);
 
 		// Configure the trigger bindings
 		configureBindings();

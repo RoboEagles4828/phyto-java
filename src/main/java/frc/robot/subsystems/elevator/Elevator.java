@@ -81,9 +81,9 @@ public class Elevator extends SubsystemBase {
         motorCfg.Slot0.kV = motorCfg.Slot1.kV = ElevatorConstants.PID_CONFIG.VELOCITY;
         motorCfg.Slot0.kA = motorCfg.Slot1.kA = ElevatorConstants.PID_CONFIG.ACCELERATION;
         motorCfg.Slot0.kI = motorCfg.Slot1.kI = ElevatorConstants.PID_CONFIG.INTEGRAL;
-        motorCfg.Slot0.kD = motorCfg.Slot1.kD = ElevatorConstants.PID_CONFIG.DERIVATIVE;
-        motorCfg.Slot0.kP = ElevatorConstants.PID_CONFIG.PROPORTIONAL_OTHERS;
-        motorCfg.Slot1.kP = ElevatorConstants.PID_CONFIG.PROPORTIONAL_L4;
+        motorCfg.Slot0.kD = motorCfg.Slot1.kD = ElevatorConstants.PID_CONFIG.elevatorDValue.get(); // ElevatorConstants.PID_CONFIG.DERIVATIVE;
+        motorCfg.Slot0.kP = ElevatorConstants.PID_CONFIG.elevatorPValue.get(); // ElevatorConstants.PID_CONFIG.PROPORTIONAL_OTHERS;
+        motorCfg.Slot1.kP = ElevatorConstants.PID_CONFIG.elevatorPValue.get(); // ElevatorConstants.PID_CONFIG.PROPORTIONAL_L4;
         motorCfg.ClosedLoopRamps.VoltageClosedLoopRampPeriod = ElevatorConstants.CLOSED_LOOP_VOLTAGE_RAMP_SEC;
         motorCfg.OpenLoopRamps.VoltageOpenLoopRampPeriod = ElevatorConstants.OPEN_LOOP_VOLTAGE_RAMP_SEC;
 

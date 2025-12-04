@@ -9,9 +9,14 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
+import edu.wpi.first.networktables.DoubleSubscriber;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.Constants;
 import frc.robot.game.AlgaeLevel;
 import frc.robot.game.CoralLevel;
 import frc.robot.game.ElevatedLevel;
+import frc.robot.util.TunableNumber;
 
 /**
  * Defines constants used only within the elevator subsystem. Note that the python code defined motion magic constants
@@ -47,11 +52,17 @@ class ElevatorConstants {
         static final double VELOCITY = 0.0;
         static final double ACCELERATION = 0.0;
         static final double INTEGRAL = 1.25;
-        static final double DERIVATIVE = 0.0;
+        // static final double DERIVATIVE = 0.0;
         /** kP for L4 in slot 1. */
         static final double PROPORTIONAL_L4 = 7.5;
         /** kP for other levels in slot 0. */
-        static final double PROPORTIONAL_OTHERS = 9.0;
+        // static final double PROPORTIONAL_OTHERS = 9.0;
+
+        public static TunableNumber elevatorPValue = new TunableNumber("Debug", "ELEVATOR_P_VALUE", 0.0);
+        public static TunableNumber elevatorDValue = new TunableNumber("Debug", "ELEVATOR_D_VALUE", 0.0);
+
+        // static final double PROPORTIONAL_OTHERS = elevatorPValue.get();
+        // static final double DERIVATIVE = elevatorDValue.get();
     }
 
     /** PID configuration slot for moving up to L4 */

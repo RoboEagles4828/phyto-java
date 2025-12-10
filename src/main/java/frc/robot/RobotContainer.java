@@ -83,11 +83,27 @@ public class RobotContainer {
 	private final CommandXboxController operatorController = new CommandXboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
 	
 	/* === COMMANDS === */
+	// Make the driver controller rumble for 0.5s
+	private final Command rumbleDriverControllerCommand = Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
+		.andThen(Commands.waitSeconds(0.5))
+		.andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0)));
+
 	// Set the target elevator height to a given level. Note that this does not immediately move the elevator.
 	private final Command setElevatorL1Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L1));
 	private final Command setElevatorL2Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L2));
 	private final Command setElevatorL3Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L3));
 	private final Command setElevatorL4Command = new InstantCommand(() -> ElevatedLevel.TRACKER.setCurrentLevel(CoralLevel.L4));
+
+	// Perform coral intake (manual enable/disable of hopper for auto mode).
+	// TODO(Ben) - this is kinda $HACKY$ but it should work (maybe); the coral state stuff doesn't seem to be fully thought out.
+	private final Command startHopperCommand = new InstantCommand(() -> CoralState.setCurrentState(CoralState.INTAKE));
+	private final Command stopHopperCommand = new InstantCommand(() -> endIntakeProcessing());
+
+	// Perform coral intake whle this button is held (for teleop mode).
+	private final Command intakeCoralWhileHeldCommand = Commands.startEnd(
+			() -> CoralState.setCurrentState(CoralState.INTAKE),
+			this::endIntakeProcessing)
+			.andThen(rumbleDriverControllerCommand);
 
 	// Attempt to score a Coral onto the Reef (fire a Coral out of the Shooter).
 	private final Command scoreCoralCommand = new InstantCommand(() -> { CoralState.setCurrentState(CoralState.SCORE);});
@@ -111,6 +127,8 @@ public class RobotContainer {
 		NamedCommands.registerCommand("RaiseElevator", elevator.getMoveToAndHoldCommand());
 		NamedCommands.registerCommand("AutoAlignLeft", autoAlignLeftPathPlannerCommand);
 		NamedCommands.registerCommand("AutoAlignRight", autoAlignRightPathPlannerCommand);
+		NamedCommands.registerCommand("StartHopper", startHopperCommand);
+		NamedCommands.registerCommand("StopHopper", stopHopperCommand);
 
 		// Create and populate a SendableChooser with the autonomous routines from PathPlanner, and add it to dashboard.
 		autoChooser = AutoBuilder.buildAutoChooser();
@@ -203,16 +221,7 @@ public class RobotContainer {
 				.withRotationalRate(0)));
 
 		// Intake button binding. Rumble only happens on normal (not interrupted by button release) completion.
-		driverController.leftTrigger().whileTrue(
-			Commands.startEnd(
-				() -> CoralState.setCurrentState(CoralState.INTAKE),
-				this::endIntakeProcessing
-			)
-			.andThen(
-				Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 1.0))
-				.andThen(Commands.waitSeconds(0.5))
-				.andThen(Commands.runOnce(() -> this.driverController.setRumble(RumbleType.kBothRumble, 0.0))))
-		);
+		driverController.leftTrigger().whileTrue(intakeCoralWhileHeldCommand);
 
 		// Driver coral jammed in hopper agitation bindings.
 		// On press, change to the hopper jammed state. On release, change to empty to be ready to intake again.

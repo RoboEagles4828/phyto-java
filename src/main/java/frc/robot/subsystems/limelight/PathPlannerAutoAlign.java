@@ -45,7 +45,7 @@ public class PathPlannerAutoAlign extends Command {
             tagId,
             side == Side.LEFT ? limelight.getLeftXOffset() : limelight.getRightXOffset(),   // front-to-tag distance
             side == Side.LEFT ? limelight.getLeftYOffset() : limelight.getRightYOffset(),
-            Constants.DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER,             // front-to-center distance
+            Constants.DISTANCE_ROBOT_FRAME_BUMPERS_TO_CENTER,             // front-to-center distance
             true            // facing away from tag (adjust as needed)
         );
 
@@ -60,9 +60,9 @@ public class PathPlannerAutoAlign extends Command {
         // PathPlanner constraints (tune these!)
         PathConstraints constraints = new PathConstraints(
                 0.5,  // max velocity (m/s)
-                0.5,  // max accel (m/s^2)
+                1,  // max accel (m/s^2)
                 0.5,  // max angular vel (rad/s)
-                1.0   // max angular accel
+                5.0   // max angular accel
         );
 
         // Generate the PP pathfinding command

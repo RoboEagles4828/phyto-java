@@ -9,6 +9,9 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.networktables.DoubleSubscriber;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
@@ -17,8 +20,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
 import frc.robot.Constants.DIOIds;
 import frc.robot.Constants.RioBusCANIds;
+import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
 
@@ -63,7 +68,7 @@ public class Elevator extends SubsystemBase {
     /** The post nudge resume holding command. */
     private final Command holdPositionPostNudge = this.run(
             this::gotoAndHoldCurrentTargetPositionRun);
-    
+
     /**
      * Creates the elevator subsystem, configures the motors, and creates game piece state bindings.
      */
@@ -75,15 +80,22 @@ public class Elevator extends SubsystemBase {
         final TalonFXConfiguration motorCfg = new TalonFXConfiguration();
         motorCfg.Feedback.SensorToMechanismRatio = ElevatorConstants.GEAR_RATIO;
         motorCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        motorCfg.Slot0.GravityType = motorCfg.Slot1.GravityType = GravityTypeValue.Elevator_Static;
-        motorCfg.Slot0.kG = motorCfg.Slot1.kG = ElevatorConstants.PID_CONFIG.GRAVITY;
-        motorCfg.Slot0.kS = motorCfg.Slot1.kS = ElevatorConstants.PID_CONFIG.STATIC;
-        motorCfg.Slot0.kV = motorCfg.Slot1.kV = ElevatorConstants.PID_CONFIG.VELOCITY;
-        motorCfg.Slot0.kA = motorCfg.Slot1.kA = ElevatorConstants.PID_CONFIG.ACCELERATION;
-        motorCfg.Slot0.kI = motorCfg.Slot1.kI = ElevatorConstants.PID_CONFIG.INTEGRAL;
-        motorCfg.Slot0.kD = motorCfg.Slot1.kD = ElevatorConstants.PID_CONFIG.elevatorDValue.get(); // ElevatorConstants.PID_CONFIG.DERIVATIVE;
-        motorCfg.Slot0.kP = ElevatorConstants.PID_CONFIG.elevatorPValue.get(); // ElevatorConstants.PID_CONFIG.PROPORTIONAL_OTHERS;
-        motorCfg.Slot1.kP = ElevatorConstants.PID_CONFIG.elevatorPValue.get(); // ElevatorConstants.PID_CONFIG.PROPORTIONAL_L4;
+        motorCfg.Slot0.GravityType = motorCfg.Slot1.GravityType = motorCfg.Slot2.GravityType = GravityTypeValue.Elevator_Static;
+        motorCfg.Slot0.kG = motorCfg.Slot1.kG = motorCfg.Slot2.kG = ElevatorConstants.PID_CONFIG.GRAVITY;
+        motorCfg.Slot0.kS = motorCfg.Slot1.kS = motorCfg.Slot2.kS = ElevatorConstants.PID_CONFIG.VELOCITY;
+        motorCfg.Slot0.kA = motorCfg.Slot1.kA = motorCfg.Slot2.kA = ElevatorConstants.PID_CONFIG.ACCELERATION;
+        motorCfg.Slot0.kI = motorCfg.Slot1.kI = motorCfg.Slot2.kI = ElevatorConstants.PID_CONFIG.INTEGRAL;
+
+        motorCfg.Slot0.kP = ElevatorConstants.PID_CONFIG.PROPORTIONALS[1];
+        motorCfg.Slot1.kP = ElevatorConstants.PID_CONFIG.PROPORTIONALS[2];
+        motorCfg.Slot2.kP = ElevatorConstants.PID_CONFIG.PROPORTIONALS[3];
+
+        motorCfg.Slot0.kD = ElevatorConstants.PID_CONFIG.DERIVATIVES[1];
+        motorCfg.Slot1.kD = ElevatorConstants.PID_CONFIG.DERIVATIVES[2];
+        motorCfg.Slot2.kD = ElevatorConstants.PID_CONFIG.DERIVATIVES[3];
+
+        // motorCfg.Slot1.kP = ElevatorConstants.PID_CONFIG.PROPORTIONAL_L4;
+        
         motorCfg.ClosedLoopRamps.VoltageClosedLoopRampPeriod = ElevatorConstants.CLOSED_LOOP_VOLTAGE_RAMP_SEC;
         motorCfg.OpenLoopRamps.VoltageOpenLoopRampPeriod = ElevatorConstants.OPEN_LOOP_VOLTAGE_RAMP_SEC;
 
@@ -149,8 +161,11 @@ public class Elevator extends SubsystemBase {
     private void setCurrentTargetPosition(final double targetPosition) {
         this.currentTargetPosition = targetPosition;
         this.currentTargetPositionPIDSlot = 0;
-        if (this.currentTargetPosition > ElevatorConstants.PID_SLOT_POSITION_THRESHOLD) {
+        if (ElevatedLevel.TRACKER.getCurrentLevel() == CoralLevel.L3) {
             this.currentTargetPositionPIDSlot = 1;
+        }
+        if (ElevatedLevel.TRACKER.getCurrentLevel() == CoralLevel.L4) {
+            this.currentTargetPositionPIDSlot = 2;
         }
     }
 
@@ -270,6 +285,7 @@ public class Elevator extends SubsystemBase {
         SmartDashboard.putBoolean("Elevator / On Target", this.onTarget());
         SmartDashboard.putBoolean("Elevator Bottom Limit Switch", bottomLimitSwitch.get());
         SmartDashboard.putBoolean("Elevator Top Limit Switch", !topLimitSwitch.get());
+        SmartDashboard.putNumber("Position", this.getPosition());
         this.isAtBottom(); //todo (ben) - This is a getter that also changes state. Bad design.
     }
 }

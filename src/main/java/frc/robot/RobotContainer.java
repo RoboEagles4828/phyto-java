@@ -265,7 +265,7 @@ public class RobotContainer {
 		operatorController.a().onTrue(setElevatorL1Command);
 		operatorController.b().onTrue(setElevatorL2Command);
 		operatorController.x().onTrue(setElevatorL3Command);
-		//operatorController.y().onTrue(setElevatorL4Command);
+		operatorController.y().onTrue(setElevatorL4Command);
 
 		// Operator bindings for elevator nudges.
 		operatorController.rightTrigger().whileTrue(elevator.nudgeUpCommand());

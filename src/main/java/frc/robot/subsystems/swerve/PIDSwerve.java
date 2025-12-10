@@ -20,9 +20,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
-import frc.robot.game.ElevatedLevel;
 import frc.robot.subsystems.limelight.Limelight;
 import frc.robot.subsystems.limelight.LimelightConstants;
 

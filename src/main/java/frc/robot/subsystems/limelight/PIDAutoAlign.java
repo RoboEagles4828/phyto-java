@@ -29,7 +29,7 @@ import frc.robot.subsystems.swerve.PIDSwerve;
 
 
 
-public class AutoAlign extends SequentialCommandGroup {
+public class PIDAutoAlign extends SequentialCommandGroup {
 
     private final CommandSwerveDrivetrain drivetrain;
     private final SwerveRequest.RobotCentric driveRR;
@@ -41,7 +41,7 @@ public class AutoAlign extends SequentialCommandGroup {
 
     private Transform3d tagToTarget;
 
-    public AutoAlign(
+    public PIDAutoAlign(
         CommandSwerveDrivetrain drivetrain,
         SwerveRequest.RobotCentric driveRR,
         Limelight limelight,

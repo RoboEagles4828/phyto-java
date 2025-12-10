@@ -10,7 +10,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -23,7 +22,6 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.game.AlgaeLevel;
 import frc.robot.game.CoralLevel;
 import frc.robot.game.CoralState;
 import frc.robot.game.ElevatedLevel;
@@ -31,9 +29,8 @@ import frc.robot.subsystems.algaemanipulator.AlgaeManipulator;
 import frc.robot.subsystems.cannon.Cannon;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
-import frc.robot.subsystems.limelight.AutoAlign;
+import frc.robot.subsystems.limelight.PIDAutoAlign;
 import frc.robot.subsystems.limelight.Limelight;
-import frc.robot.subsystems.limelight.LimelightHelpers.PoseEstimate;
 import frc.robot.subsystems.limelight.PathPlannerAutoAlign;
 import frc.robot.subsystems.swerve.CommandSwerveDrivetrain;
 import frc.robot.subsystems.swerve.TunerConstants;
@@ -95,6 +92,10 @@ public class RobotContainer {
 	// Attempt to score a Coral onto the Reef (fire a Coral out of the Shooter).
 	private final Command scoreCoralCommand = new InstantCommand(() -> { CoralState.setCurrentState(CoralState.SCORE);});
 
+	// Attempt to perform auto-align with PathPlanner for movement.
+	private final Command autoAlignLeftPathPlannerCommand = new PathPlannerAutoAlign(limelight, drivetrain, PathPlannerAutoAlign.Side.LEFT).withTimeout(5.0);
+	private final Command autoAlignRightPathPlannerCommand = new PathPlannerAutoAlign(limelight, drivetrain, PathPlannerAutoAlign.Side.RIGHT).withTimeout(5.0);
+
 	/* === MEMBER VARIABLES === */
 	// Chooser widget which will contain all autonomous routines from PathPlanner and displays on dashboard.
 	private final SendableChooser<Command> autoChooser;
@@ -108,7 +109,9 @@ public class RobotContainer {
 		NamedCommands.registerCommand("ElevatorL3", setElevatorL3Command);
 		NamedCommands.registerCommand("ElevatorL4", setElevatorL4Command);
 		NamedCommands.registerCommand("RaiseElevator", elevator.getMoveToAndHoldCommand());
-		
+		NamedCommands.registerCommand("AutoAlignLeft", autoAlignLeftPathPlannerCommand);
+		NamedCommands.registerCommand("AutoAlignRight", autoAlignRightPathPlannerCommand);
+
 		// Create and populate a SendableChooser with the autonomous routines from PathPlanner, and add it to dashboard.
 		autoChooser = AutoBuilder.buildAutoChooser();
 		SmartDashboard.putData("Auto Chooser", autoChooser);
@@ -156,8 +159,8 @@ public class RobotContainer {
 		// auto align to the reef
 		// TODO make these bindings just povRight/Left without anding with a
 		// TODO consider adding new buttons on the driver controller to accomodate auto align
-		driverController.b().onTrue(new AutoAlign(drivetrain, driveRR, limelight, driverController, true, true));
-		driverController.x().onTrue(new AutoAlign(drivetrain, driveRR, limelight, driverController, false, true));
+		driverController.b().onTrue(new PIDAutoAlign(drivetrain, driveRR, limelight, driverController, true, true));
+		driverController.x().onTrue(new PIDAutoAlign(drivetrain, driveRR, limelight, driverController, false, true));
 
 		operatorController.start().onTrue(Commands.runOnce(() -> SignalLogger.start()));
 		operatorController.back().onTrue(Commands.runOnce(() -> SignalLogger.stop()));
@@ -165,12 +168,12 @@ public class RobotContainer {
 		drivetrain.registerTelemetry(logger::telemeterize);
 
 		// Alternative driving scheme for slow robot-relative driving meant for aligning manually
-		driverController.a().whileTrue( // new RepeatCommand(
+		driverController.a().whileTrue( 
 			drivetrain.applyRequest(() -> driveRR
 				.withVelocityX(-driverController.getLeftY() * TunerConstants.MaxAlignmentSpeed * 0.5)
 				.withVelocityY(-driverController.getLeftX() * TunerConstants.MaxAlignmentSpeed * 0.5)
 				.withRotationalRate(-driverController.getRightX() * TunerConstants.MaxAlignmentSpeed * 0.5)
-			) // )
+			)
 		);			
 			
 		/* Testing basic robot movement in the cardinal directions */
@@ -240,20 +243,6 @@ public class RobotContainer {
 		// Note that the driver should treat the left bumper like a while held in all cases.
 		driverController.leftBumper().whileTrue(scoreCoralCommand);
 
-		// Driver controller algae scoring level selection bindings.
-		// driverController.b()
-		// 	.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_LOW)));
-		// driverController.x()
-		// 	.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_HIGH)));
-		// driverController.y()
-		// 	.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
-		operatorController.povRight()
-			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_LOW)));
-		operatorController.povLeft()
-			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.DEALGAE_HIGH)));
-		operatorController.povUp()
-			.onTrue(Commands.runOnce(() -> ElevatedLevel.TRACKER.setCurrentLevel(AlgaeLevel.SCORE_BARGE)));
-
 		// Both operator binding for return to carry and elevator to zero (was or'ed with driver pov down).
 		// TODO consider going to EMPTY and when we get to zero, run intake for a moment to decide between
 		// EMPTY/CARRY.
@@ -261,7 +250,6 @@ public class RobotContainer {
 			.onTrue(Commands.runOnce(() -> CoralState.setCurrentState(CoralState.CARRY)));
 
 		// Operator target coral scoring level selection bindings.
-
 		operatorController.a().onTrue(setElevatorL1Command);
 		operatorController.b().onTrue(setElevatorL2Command);
 		operatorController.x().onTrue(setElevatorL3Command);
@@ -272,24 +260,8 @@ public class RobotContainer {
 		operatorController.leftTrigger().whileTrue(elevator.nudgeDownCommand());
 		
 		// Autoalign triggers
-		operatorController.leftBumper().onTrue(makeLeftAutoAlignCommand());
-
-		operatorController.rightBumper().onTrue(makeRightAutoAlignCommand());
-		
-		// Operator binding to reset elevator encoder.
-		// operatorController.back().onTrue(elevator.resetElevatorEncoder());
-	}
-
-	private Command makeLeftAutoAlignCommand() {
-		return new PathPlannerAutoAlign(
-			limelight, drivetrain, PathPlannerAutoAlign.Side.LEFT)
-			.withTimeout(5.0);
-	}
-
-	private Command makeRightAutoAlignCommand() {
-		return new PathPlannerAutoAlign(
-			limelight, drivetrain, PathPlannerAutoAlign.Side.RIGHT)
-			.withTimeout(5.0);
+		operatorController.leftBumper().onTrue(autoAlignLeftPathPlannerCommand);
+		operatorController.rightBumper().onTrue(autoAlignRightPathPlannerCommand);
 	}
 
 	/**

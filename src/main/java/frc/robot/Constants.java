@@ -17,6 +17,7 @@ public final class Constants {
     public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(APRIL_TAG_FIELD_TYPE);
 
     public static final double DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER = 0.3556;
+    public static final double DISTANCE_ROBOT_FRAME_BUMPERS_TO_CENTER = DISTANCE_ROBOT_FRAME_NOBUMPERS_TO_CENTER + 0.079;
 
     /**
      * Constants related to operator interaction devices.

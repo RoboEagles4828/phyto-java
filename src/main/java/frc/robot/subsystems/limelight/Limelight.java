@@ -30,9 +30,9 @@ public class Limelight extends SubsystemBase {
     private final NetworkTable debugTable = NetworkTableInstance.getDefault().getTable(Constants.NT_DEBUG);
     private final BooleanSubscriber useVisionToggle = debugTable.getBooleanTopic(NT_USE_VISION).subscribe(true);
     private final DoubleSubscriber leftXOffset = debugTable.getDoubleTopic(NT_LEFT_X_OFFSET).subscribe(0.0);
-    private final DoubleSubscriber leftYOffset = debugTable.getDoubleTopic(NT_LEFT_Y_OFFSET).subscribe(0.0);
+    private final DoubleSubscriber leftYOffset = debugTable.getDoubleTopic(NT_LEFT_Y_OFFSET).subscribe(-0.265);
     private final DoubleSubscriber rightXOffset = debugTable.getDoubleTopic(NT_RIGHT_X_OFFSET).subscribe(0.0);
-    private final DoubleSubscriber rightYOffset = debugTable.getDoubleTopic(NT_RIGHT_Y_OFFSET).subscribe(0.0);
+    private final DoubleSubscriber rightYOffset = debugTable.getDoubleTopic(NT_RIGHT_Y_OFFSET).subscribe(0.072);
 
     public Limelight(CommandSwerveDrivetrain drivetrain, Field2d field) {
         this.drivetrain = drivetrain;

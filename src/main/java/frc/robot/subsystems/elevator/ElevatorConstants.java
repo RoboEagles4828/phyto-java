@@ -9,6 +9,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
+import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -52,17 +53,18 @@ class ElevatorConstants {
         static final double VELOCITY = 0.0;
         static final double ACCELERATION = 0.0;
         static final double INTEGRAL = 1.25;
-        // static final double DERIVATIVE = 0.0;
+
+        static final double[] PROPORTIONALS = {16.0, 32.0, 34.0, 48.0};
+        static final double[] DERIVATIVES = {1.0, 6.0, 7.25, 16.75};
+        // static final double DERIVATIVE = 16.75;
         /** kP for L4 in slot 1. */
-        static final double PROPORTIONAL_L4 = 7.5;
+        // static final double PROPORTIONAL_L4 = 0.0;
         /** kP for other levels in slot 0. */
-        // static final double PROPORTIONAL_OTHERS = 9.0;
+        // static final double PROPORTIONAL_OTHERS = 48.0;
 
-        public static TunableNumber elevatorPValue = new TunableNumber("Debug", "ELEVATOR_P_VALUE", 0.0);
-        public static TunableNumber elevatorDValue = new TunableNumber("Debug", "ELEVATOR_D_VALUE", 0.0);
-
-        // static final double PROPORTIONAL_OTHERS = elevatorPValue.get();
-        // static final double DERIVATIVE = elevatorDValue.get();
+        // public static TunableNumber elevatorPValue = new TunableNumber("Debug", "ELEVATOR_P_VALUE", 0.0);
+        // public static TunableNumber elevatorDValue = new TunableNumber("Debug", "ELEVATOR_D_VALUE", 0.0);
+        
     }
 
     /** PID configuration slot for moving up to L4 */

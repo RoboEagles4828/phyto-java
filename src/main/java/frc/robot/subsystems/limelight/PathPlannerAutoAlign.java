@@ -60,7 +60,7 @@ public class PathPlannerAutoAlign extends Command {
         // PathPlanner constraints (tune these!)
         PathConstraints constraints = new PathConstraints(
                 0.5,  // max velocity (m/s)
-                1,  // max accel (m/s^2)
+                0.5,  // max accel (m/s^2)
                 0.5,  // max angular vel (rad/s)
                 5.0   // max angular accel
         );

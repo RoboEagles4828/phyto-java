@@ -39,10 +39,10 @@ public class Limelight extends SubsystemBase {
         this.field = field;
 
         debugTable.getBooleanTopic(NT_USE_VISION).publish().setDefault(true);
-        debugTable.getDoubleTopic(NT_LEFT_X_OFFSET).publish().setDefault(0.1651);
-        debugTable.getDoubleTopic(NT_LEFT_Y_OFFSET).publish().setDefault(-0.15);
-        debugTable.getDoubleTopic(NT_RIGHT_X_OFFSET).publish().setDefault(0.1651);
-        debugTable.getDoubleTopic(NT_RIGHT_Y_OFFSET).publish().setDefault(0.15);
+        debugTable.getDoubleTopic(NT_LEFT_X_OFFSET).publish().setDefault(0);
+        debugTable.getDoubleTopic(NT_LEFT_Y_OFFSET).publish().setDefault(-0.265);
+        debugTable.getDoubleTopic(NT_RIGHT_X_OFFSET).publish().setDefault(0);
+        debugTable.getDoubleTopic(NT_RIGHT_Y_OFFSET).publish().setDefault(0.072);
     }
 
     public boolean isPoseEstimateAcceptable() {

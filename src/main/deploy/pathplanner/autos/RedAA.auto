@@ -23,15 +23,9 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "deadline",
           "data": {
             "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "RaiseElevator"
-                }
-              },
               {
                 "type": "sequential",
                 "data": {
@@ -47,8 +41,20 @@
                       "data": {
                         "name": "ScoreCoral"
                       }
+                    },
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.0
+                      }
                     }
                   ]
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "RaiseElevator"
                 }
               }
             ]
